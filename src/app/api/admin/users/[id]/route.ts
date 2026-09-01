@@ -24,10 +24,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         name: input.name,
         email: input.email,
         role: input.role,
+        restaurantId: input.role ? (input.role === "RESTAURATEUR" ? input.restaurantId : null) : undefined,
         isActive: input.isActive,
         passwordHash: input.password ? await bcrypt.hash(input.password, 12) : undefined,
       },
-      select: { id: true, name: true, email: true, role: true, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        restaurantId: true,
+        restaurant: { select: { name: true } },
+      },
     });
 
     await recordAuditLog({ userId: session.user.id, action: "user.update", entityType: "User", entityId: id });

@@ -54,6 +54,9 @@ export function SiteFooter({
             <Link href="/politique-de-confidentialite" className="w-fit hover:text-gold-300">
               Politique de confidentialité
             </Link>
+            <Link href="/mon-restaurant" className="w-fit hover:text-gold-300">
+              Espace restaurateur
+            </Link>
           </nav>
         </div>
 

@@ -87,7 +87,7 @@ export default async function ArticlePage({ params }: Props) {
           <div className="mx-auto mt-10 h-px w-16 bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
 
           <div
-            className="prose sm:prose-lg mx-auto mt-10 max-w-none pb-16 [&>p:first-of-type]:font-display [&>p:first-of-type]:text-xl [&>p:first-of-type]:italic [&>p:first-of-type]:text-ink-700 [&_li::marker]:text-gold-600 [&_h2]:mt-12 [&_h3]:mt-8"
+            className="prose prose-sm mx-auto mt-10 max-w-none pb-16 [&>p:first-of-type]:font-display [&>p:first-of-type]:text-base [&>p:first-of-type]:italic [&>p:first-of-type]:text-ink-700 [&_li::marker]:text-gold-600 [&_h2]:mt-12 [&_h3]:mt-8"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
 

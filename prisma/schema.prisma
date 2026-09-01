@@ -14,6 +14,9 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  // Accès restreint à la fiche d'un seul restaurant (voir /mon-restaurant) :
+  // gère son propre restaurant et sa propre galerie, rien d'autre.
+  RESTAURATEUR
 }
 
 enum PublishStatus {
@@ -54,6 +57,11 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  // Renseigné uniquement pour role = RESTAURATEUR : le restaurant que ce
+  // compte est autorisé à gérer depuis /mon-restaurant.
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
   articles      Article[]
   uploadedMedia Media[]
@@ -140,6 +148,7 @@ model Restaurant {
   images       RestaurantImage[]
   boardMembers BoardMember[]
   galleryAlbum GalleryAlbum?
+  users        User[]
 
   @@index([status, order])
   @@map("restaurants")

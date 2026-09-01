@@ -11,23 +11,47 @@ interface UserRow {
   id: string;
   name: string;
   email: string;
-  role: "SUPER_ADMIN" | "ADMIN";
+  role: "SUPER_ADMIN" | "ADMIN" | "RESTAURATEUR";
   isActive: boolean;
+  restaurantId: string | null;
+  restaurant: { name: string } | null;
 }
 
-export function UserManager({ initialUsers, currentUserId }: { initialUsers: UserRow[]; currentUserId: string }) {
+interface RestaurantOption {
+  id: string;
+  name: string;
+}
+
+const ROLE_LABELS: Record<UserRow["role"], string> = {
+  SUPER_ADMIN: "Super admin",
+  ADMIN: "Admin",
+  RESTAURATEUR: "Restaurateur",
+};
+
+export function UserManager({
+  initialUsers,
+  restaurants,
+  currentUserId,
+}: {
+  initialUsers: UserRow[];
+  restaurants: RestaurantOption[];
+  currentUserId: string;
+}) {
   const [users, setUsers] = useState(initialUsers);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: { name: "", email: "", password: "", role: "ADMIN" },
+    defaultValues: { name: "", email: "", password: "", role: "ADMIN", restaurantId: null },
   });
+
+  const selectedRole = watch("role");
 
   async function onSubmit(values: CreateUserInput) {
     setServerError(null);
@@ -72,6 +96,7 @@ export function UserManager({ initialUsers, currentUserId }: { initialUsers: Use
               <th className="px-3 py-2">Nom</th>
               <th className="px-3 py-2">Email</th>
               <th className="px-3 py-2">Rôle</th>
+              <th className="px-3 py-2">Restaurant</th>
               <th className="px-3 py-2">Actif</th>
               <th className="px-3 py-2">Actions</th>
             </tr>
@@ -81,7 +106,8 @@ export function UserManager({ initialUsers, currentUserId }: { initialUsers: Use
               <tr key={user.id}>
                 <td className="px-3 py-2 font-medium text-gray-900">{user.name}</td>
                 <td className="px-3 py-2">{user.email}</td>
-                <td className="px-3 py-2">{user.role === "SUPER_ADMIN" ? "Super admin" : "Admin"}</td>
+                <td className="px-3 py-2">{ROLE_LABELS[user.role]}</td>
+                <td className="px-3 py-2 text-gray-500">{user.restaurant?.name ?? "—"}</td>
                 <td className="px-3 py-2">
                   <button
                     onClick={() => toggleActive(user)}
@@ -107,7 +133,7 @@ export function UserManager({ initialUsers, currentUserId }: { initialUsers: Use
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-900">Nouvel administrateur</h2>
+        <h2 className="text-sm font-semibold text-gray-900">Nouveau compte</h2>
         <FormField label="Nom" htmlFor="name" error={errors.name?.message}>
           <Input id="name" {...register("name")} />
         </FormField>
@@ -126,8 +152,26 @@ export function UserManager({ initialUsers, currentUserId }: { initialUsers: Use
           <Select id="role" {...register("role")}>
             <option value="ADMIN">Admin (gestion des contenus)</option>
             <option value="SUPER_ADMIN">Super admin (accès total)</option>
+            <option value="RESTAURATEUR">Restaurateur (une seule fiche)</option>
           </Select>
         </FormField>
+        {selectedRole === "RESTAURATEUR" ? (
+          <FormField
+            label="Restaurant géré"
+            htmlFor="restaurantId"
+            hint="Le compte ne pourra modifier que ce restaurant, depuis /mon-restaurant."
+            error={errors.restaurantId?.message}
+          >
+            <Select id="restaurantId" {...register("restaurantId")}>
+              <option value="">Sélectionner...</option>
+              {restaurants.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        ) : null}
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Création..." : "Créer"}
         </Button>

@@ -10,7 +10,17 @@ export async function GET() {
   try {
     await requireSuperAdmin();
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, isActive: true, lastLoginAt: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        restaurantId: true,
+        restaurant: { select: { name: true } },
+      },
       orderBy: { createdAt: "asc" },
     });
     return NextResponse.json({ users });
@@ -29,9 +39,18 @@ export async function POST(request: NextRequest) {
         name: input.name,
         email: input.email,
         role: input.role,
+        restaurantId: input.role === "RESTAURATEUR" ? input.restaurantId : null,
         passwordHash: await bcrypt.hash(input.password, 12),
       },
-      select: { id: true, name: true, email: true, role: true, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        restaurantId: true,
+        restaurant: { select: { name: true } },
+      },
     });
 
     await recordAuditLog({

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireMediaAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { uploadMedia } from "@/lib/services/media.service";
 import { recordAuditLog } from "@/lib/services/audit-log.service";
@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    await requireContentAccess();
+    await requireMediaAccess();
     const search = request.nextUrl.searchParams.get("q")?.trim();
     const type = request.nextUrl.searchParams.get("type");
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireContentAccess();
+    const session = await requireMediaAccess();
     const formData = await request.formData();
     const file = formData.get("file");
     const alt = formData.get("alt");

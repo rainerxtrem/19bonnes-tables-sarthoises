@@ -7,24 +7,39 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
-export const createUserSchema = z.object({
-  name: z.string().trim().min(2, "Nom trop court").max(120),
-  email: z.string().trim().toLowerCase().email("Adresse email invalide"),
-  password: z
-    .string()
-    .min(12, "Le mot de passe doit contenir au moins 12 caractères")
-    .regex(/[a-z]/, "Le mot de passe doit contenir une minuscule")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir une majuscule")
-    .regex(/[0-9]/, "Le mot de passe doit contenir un chiffre"),
-  role: z.enum(["SUPER_ADMIN", "ADMIN"]),
-});
+export const createUserSchema = z
+  .object({
+    name: z.string().trim().min(2, "Nom trop court").max(120),
+    email: z.string().trim().toLowerCase().email("Adresse email invalide"),
+    password: z
+      .string()
+      .min(12, "Le mot de passe doit contenir au moins 12 caractères")
+      .regex(/[a-z]/, "Le mot de passe doit contenir une minuscule")
+      .regex(/[A-Z]/, "Le mot de passe doit contenir une majuscule")
+      .regex(/[0-9]/, "Le mot de passe doit contenir un chiffre"),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR"]),
+    // Requis uniquement pour un compte RESTAURATEUR — voir superRefine.
+    restaurantId: z.string().cuid().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === "RESTAURATEUR" && !data.restaurantId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Choisissez le restaurant que ce compte doit gérer",
+        path: ["restaurantId"],
+      });
+    }
+  });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
-export const updateUserSchema = createUserSchema
-  .omit({ password: true })
-  .extend({
-    password: createUserSchema.shape.password.optional(),
+export const updateUserSchema = z
+  .object({
+    name: z.string().trim().min(2, "Nom trop court").max(120),
+    email: z.string().trim().toLowerCase().email("Adresse email invalide"),
+    password: createUserSchema.innerType().shape.password.optional(),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR"]),
+    restaurantId: z.string().cuid().optional().nullable(),
     isActive: z.boolean(),
   })
-  .partial({ name: true, email: true, role: true, isActive: true });
+  .partial({ name: true, email: true, role: true, isActive: true, restaurantId: true });

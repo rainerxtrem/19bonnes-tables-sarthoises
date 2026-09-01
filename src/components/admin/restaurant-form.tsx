@@ -47,7 +47,17 @@ function toFormDefaults(restaurant?: RestaurantWithRelations | null): Restaurant
   };
 }
 
-export function RestaurantForm({ restaurant }: { restaurant?: RestaurantWithRelations | null }) {
+export function RestaurantForm({
+  restaurant,
+  mode = "admin",
+  redirectTo = "/admin/restaurants",
+}: {
+  restaurant?: RestaurantWithRelations | null;
+  /** "owner" masque les champs de curation réservés à l'association (ordre
+   * d'affichage, mise en avant) — utilisé par /mon-restaurant. */
+  mode?: "admin" | "owner";
+  redirectTo?: string;
+}) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [mainImagePickerOpen, setMainImagePickerOpen] = useState(false);
@@ -94,7 +104,7 @@ export function RestaurantForm({ restaurant }: { restaurant?: RestaurantWithRela
       return;
     }
 
-    router.push("/admin/restaurants");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -208,13 +218,17 @@ export function RestaurantForm({ restaurant }: { restaurant?: RestaurantWithRela
               <option value="ARCHIVED">Archivé</option>
             </Select>
           </FormField>
-          <FormField label="Ordre d'affichage" htmlFor="order" error={errors.order?.message}>
-            <Input id="order" type="number" {...register("order", { valueAsNumber: true })} />
-          </FormField>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" {...register("isFeatured")} />
-            Restaurant mis en avant
-          </label>
+          {mode === "admin" ? (
+            <>
+              <FormField label="Ordre d'affichage" htmlFor="order" error={errors.order?.message}>
+                <Input id="order" type="number" {...register("order", { valueAsNumber: true })} />
+              </FormField>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" {...register("isFeatured")} />
+                Restaurant mis en avant
+              </label>
+            </>
+          ) : null}
           <div className="flex gap-2 pt-2">
             <Button type="submit" disabled={isSubmitting} className="flex-1">
               {isSubmitting ? "Enregistrement..." : isEdit ? "Enregistrer" : "Créer"}
