@@ -4,12 +4,18 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 import { loginSchema } from "@/lib/validation/auth";
 import { authConfig } from "@/lib/auth/config";
-import type { Role } from "@prisma/client";
 // L'augmentation de types "next-auth" / "next-auth/jwt" vit dans
 // src/types/next-auth.d.ts et est chargée automatiquement par tsconfig
 // (include: "**/*.ts") — pas besoin de l'importer ici (un import runtime
 // ferait échouer le bundling webpack, ce fichier n'existant qu'à la
 // compilation).
+//
+// Les callbacks jwt/session/authorized vivent dans authConfig (voir
+// lib/auth/config.ts) et sont réutilisés tels quels ici via le spread
+// ci-dessous — c'est cette config, edge-safe, qui est aussi utilisée par le
+// middleware. Ne pas les redéfinir ici séparément : le middleware n'a accès
+// qu'à authConfig, donc toute logique jwt/session ajoutée uniquement ici
+// serait invisible pour lui (voir le commentaire dans config.ts).
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -45,21 +51,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    ...authConfig.callbacks,
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id as string;
-        token.role = user.role;
-        token.restaurantId = user.restaurantId ?? null;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.role = token.role as Role;
-      session.user.restaurantId = token.restaurantId as string | null;
-      return session;
-    },
-  },
 });

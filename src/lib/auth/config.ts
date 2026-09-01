@@ -1,12 +1,20 @@
 import type { NextAuthConfig } from "next-auth";
 import { NextResponse } from "next/server";
+import type { Role } from "@prisma/client";
 
 /**
- * Config "edge-safe" : ne référence ni Prisma ni bcrypt (indisponibles en
- * runtime Edge). Utilisée par le middleware pour protéger /admin et
- * /mon-restaurant sans toucher la base de données ; la config complète avec
- * le provider Credentials vit dans lib/auth/index.ts (runtime Node, utilisé
- * par la route API et les server components).
+ * Config "edge-safe" : ne référence ni Prisma ni bcrypt à l'exécution
+ * (indisponibles en runtime Edge) — seul un `import type` de `Role` est
+ * utilisé, entièrement supprimé à la compilation. Utilisée par le
+ * middleware pour protéger /admin et /mon-restaurant sans toucher la base
+ * de données ; la config complète avec le provider Credentials vit dans
+ * lib/auth/index.ts (runtime Node, utilisé par la route API et les server
+ * components), en réutilisant exactement ces mêmes callbacks.
+ *
+ * Important : jwt/session doivent être définis ICI (et pas seulement dans
+ * index.ts) sinon le middleware — qui n'utilise QUE cette config — ne voit
+ * jamais `role`/`restaurantId` sur la session, et tout contrôle de rôle au
+ * niveau du middleware échoue silencieusement pour tout le monde.
  */
 export const authConfig: NextAuthConfig = {
   // Auth.js ne fait confiance automatiquement qu'à certains hôtes connus
@@ -28,6 +36,20 @@ export const authConfig: NextAuthConfig = {
   },
   providers: [],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id as string;
+        token.role = user.role;
+        token.restaurantId = (user as { restaurantId?: string | null }).restaurantId ?? null;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.role = token.role as Role;
+      session.user.restaurantId = token.restaurantId as string | null;
+      return session;
+    },
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
 
