@@ -409,16 +409,16 @@ async function main() {
   // ---------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------
-  const bonCadeauxPage = await prisma.page.findUnique({ where: { slug: "bon-cadeaux" } });
-
+  // Menu volontairement réduit à 6 entrées courtes (chacune tient sur une
+  // ligne dans le header) : "Accueil" est déjà accessible via le logo, et
+  // "Bons cadeaux" reste accessible depuis le footer.
   const navItems: { label: string; linkType: "INTERNAL" | "EXTERNAL"; url?: string; pageId?: string; order: number }[] = [
-    { label: "Accueil", linkType: "INTERNAL", url: "/", order: 1 },
-    { label: "Nos restaurants", linkType: "INTERNAL", url: "/nos-restaurants", order: 2 },
-    { label: "L'association", linkType: "INTERNAL", url: "/le-bureau", order: 3 },
-    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 4 },
-    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 5 },
-    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 6 },
-    { label: "Bons cadeaux", linkType: "INTERNAL", pageId: bonCadeauxPage?.id, order: 7 },
+    { label: "Restaurants", linkType: "INTERNAL", url: "/nos-restaurants", order: 1 },
+    { label: "L'association", linkType: "INTERNAL", url: "/le-bureau", order: 2 },
+    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 3 },
+    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 4 },
+    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 5 },
+    { label: "Contact", linkType: "INTERNAL", url: "/contact", order: 6 },
   ];
 
   for (const item of navItems) {

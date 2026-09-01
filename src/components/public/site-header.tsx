@@ -54,14 +54,14 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-0.5 lg:flex">
           {mainItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
               target={item.openInNewTab ? "_blank" : undefined}
               rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-              className="link-sweep rounded-sm px-4 py-2 text-sm font-medium text-ink-700 transition-colors hover:text-wine-700"
+              className="link-sweep whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:text-wine-700"
             >
               {item.label}
             </Link>
@@ -71,7 +71,7 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
               href={contactItem.href}
               target={contactItem.openInNewTab ? "_blank" : undefined}
               rel={contactItem.openInNewTab ? "noopener noreferrer" : undefined}
-              className="ml-2 rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
+              className="ml-2 whitespace-nowrap rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
             >
               {contactItem.label}
             </Link>
@@ -79,7 +79,7 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
         </nav>
 
         <button
-          className="relative z-50 flex h-10 w-10 items-center justify-center text-ink-900 md:hidden"
+          className="relative z-50 flex h-10 w-10 items-center justify-center text-ink-900 lg:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={open}
@@ -107,10 +107,10 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
         </button>
       </div>
 
-      {/* Menu mobile plein écran */}
+      {/* Menu mobile/tablette plein écran (sous le seuil lg où la nav compacte s'affiche) */}
       <div
         className={cn(
-          "fixed inset-0 top-20 z-40 bg-cream-50 transition-opacity duration-300 md:hidden",
+          "fixed inset-0 top-20 z-40 bg-cream-50 transition-opacity duration-300 lg:hidden",
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         )}
       >
