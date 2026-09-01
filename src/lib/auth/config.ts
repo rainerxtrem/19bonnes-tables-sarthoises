@@ -8,6 +8,13 @@ import type { NextAuthConfig } from "next-auth";
  * route API et les server components).
  */
 export const authConfig: NextAuthConfig = {
+  // Auth.js ne fait confiance automatiquement qu'à certains hôtes connus
+  // (Vercel...). Railway (et tout hébergeur derrière un proxy inconnu
+  // d'Auth.js) doit être explicitement approuvé, sinon toutes les requêtes
+  // /api/auth/* échouent avec "UntrustedHost" — voir
+  // https://errors.authjs.dev#untrustedhost. Sans risque ici : on ne route
+  // que via NEXTAUTH_URL/le domaine configuré, pas un Host arbitraire.
+  trustHost: true,
   pages: {
     signIn: "/admin/login",
   },
