@@ -7,7 +7,11 @@ export const metadata: Metadata = { title: "Connexion administration" };
 
 export default async function AdminLoginPage() {
   const session = await auth();
-  if (session?.user) {
+  // On ne vérifie pas que la présence d'une session mais bien le rôle : un
+  // compte RESTAURATEUR connecté (via /mon-restaurant) ne doit pas être
+  // renvoyé vers /admin — le middleware l'y refuserait de toute façon,
+  // provoquant une boucle de redirection entre les deux pages.
+  if (session?.user && (session.user.role === "SUPER_ADMIN" || session.user.role === "ADMIN")) {
     redirect("/admin");
   }
 
