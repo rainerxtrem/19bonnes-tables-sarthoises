@@ -88,20 +88,21 @@ export default async function SlugPage({ params }: Props) {
       <article>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-        {/* Hero éditorial */}
-        <div className="relative flex h-[62vh] min-h-[420px] items-end overflow-hidden bg-ink-950">
+        {/* Bandeau d'en-tête compact : l'essentiel (nom, ville) sans empiéter
+            sur les informations pratiques qui suivent juste en dessous. */}
+        <div className="relative flex min-h-[220px] items-end overflow-hidden bg-ink-950 py-10 sm:min-h-[260px]">
           {restaurant.mainImage ? (
             <Image
               src={restaurant.mainImage.url}
               alt={restaurant.mainImage.alt ?? restaurant.name}
               fill
               priority
-              className="object-cover opacity-80"
+              className="object-cover opacity-50"
             />
           ) : null}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/30 to-ink-950/10" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-ink-950/20" />
 
-          <div className="container relative z-10 pb-12">
+          <div className="container relative z-10">
             <Link
               href="/nos-restaurants"
               className="link-sweep inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-cream-100/80"
@@ -109,10 +110,10 @@ export default async function SlugPage({ params }: Props) {
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
               Tous les restaurants
             </Link>
-            <p className="eyebrow mt-6 text-gold-300 before:bg-gold-300">Restaurant membre</p>
-            <h1 className="mt-3 max-w-2xl font-display text-4xl text-cream-50 sm:text-5xl">{restaurant.name}</h1>
+            <p className="eyebrow mt-4 text-gold-300 before:bg-gold-300">Restaurant membre</p>
+            <h1 className="mt-2 max-w-2xl font-display text-3xl text-cream-50 sm:text-4xl">{restaurant.name}</h1>
             {restaurant.city ? (
-              <p className="mt-3 flex items-center gap-1.5 text-cream-100/80">
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-cream-100/80">
                 <MapPin className="h-4 w-4 text-gold-300" aria-hidden />
                 {restaurant.city}
               </p>
@@ -122,6 +123,17 @@ export default async function SlugPage({ params }: Props) {
 
         <div className="container grid grid-cols-1 gap-12 py-16 lg:grid-cols-[1.6fr_1fr]">
           <div>
+            {restaurant.mainImage ? (
+              <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-md bg-ink-100 shadow-card">
+                <Image
+                  src={restaurant.mainImage.url}
+                  alt={restaurant.mainImage.alt ?? restaurant.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
+
             {restaurant.shortDescription ? (
               <p className="font-display text-xl italic text-ink-700">{restaurant.shortDescription}</p>
             ) : null}

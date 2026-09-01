@@ -31,6 +31,12 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Le lien "Contact" est géré par le CMS comme les autres (voir
+  // /admin/navigation) : on l'isole juste pour le mettre en avant visuellement
+  // au lieu de dupliquer un second lien codé en dur vers /contact.
+  const contactItem = items.find((item) => item.href === "/contact");
+  const mainItems = items.filter((item) => item !== contactItem);
+
   return (
     <header
       className={cn(
@@ -49,7 +55,7 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {items.map((item) => (
+          {mainItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
@@ -60,12 +66,16 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/contact"
-            className="ml-2 rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
-          >
-            Nous contacter
-          </Link>
+          {contactItem ? (
+            <Link
+              href={contactItem.href}
+              target={contactItem.openInNewTab ? "_blank" : undefined}
+              rel={contactItem.openInNewTab ? "noopener noreferrer" : undefined}
+              className="ml-2 rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
+            >
+              {contactItem.label}
+            </Link>
+          ) : null}
         </nav>
 
         <button
@@ -105,7 +115,7 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
         )}
       >
         <nav className="container flex flex-col divide-y divide-ink-900/10 pt-4">
-          {items.map((item) => (
+          {mainItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}
@@ -117,9 +127,15 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
               {item.label}
             </Link>
           ))}
-          <Link href="/contact" className="py-4 font-display text-2xl text-wine-700" onClick={() => setOpen(false)}>
-            Nous contacter
-          </Link>
+          {contactItem ? (
+            <Link
+              href={contactItem.href}
+              className="py-4 font-display text-2xl text-wine-700"
+              onClick={() => setOpen(false)}
+            >
+              {contactItem.label}
+            </Link>
+          ) : null}
         </nav>
       </div>
     </header>
