@@ -10,7 +10,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader siteName={settings.siteName} items={navItems} />
+      <SiteHeader siteName={settings.siteName} items={navItems} logoUrl={settings.logo?.url ?? null} />
       <main className="flex-1">{children}</main>
       <SiteFooter
         siteName={settings.siteName}

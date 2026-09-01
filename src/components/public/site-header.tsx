@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 
@@ -13,7 +14,15 @@ interface NavItem {
   children: NavItem[];
 }
 
-export function SiteHeader({ siteName, items }: { siteName: string; items: NavItem[] }) {
+export function SiteHeader({
+  siteName,
+  items,
+  logoUrl,
+}: {
+  siteName: string;
+  items: NavItem[];
+  logoUrl?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -45,12 +54,21 @@ export function SiteHeader({ siteName, items }: { siteName: string; items: NavIt
       )}
     >
       <div className="container flex h-20 items-center justify-between">
-        <Link href="/" className="group flex flex-col leading-none">
-          <span className="font-display text-lg font-medium tracking-wide text-ink-900 sm:text-xl">
-            {siteName}
-          </span>
-          <span className="mt-1 hidden text-[10px] uppercase tracking-[0.25em] text-gold-600 sm:block">
-            Le savoir-faire pour mieux vous servir
+        <Link href="/" className="group flex items-center gap-3">
+          {logoUrl ? (
+            // object-contain (pas de recadrage) : on ne connaît pas les
+            // proportions du logo uploadé, qu'il soit carré, rond ou large.
+            <span className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
+              <Image src={logoUrl} alt={siteName} fill className="object-contain" sizes="48px" />
+            </span>
+          ) : null}
+          <span className="flex flex-col leading-none">
+            <span className="font-display text-lg font-medium tracking-wide text-ink-900 sm:text-xl">
+              {siteName}
+            </span>
+            <span className="mt-1 hidden text-[10px] uppercase tracking-[0.25em] text-gold-600 sm:block">
+              Le savoir-faire pour mieux vous servir
+            </span>
           </span>
         </Link>
 
