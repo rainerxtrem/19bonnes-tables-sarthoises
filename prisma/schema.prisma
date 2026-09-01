@@ -1,0 +1,416 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum PublishStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContactMessageStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+}
+
+enum NavigationLinkType {
+  INTERNAL
+  EXTERNAL
+}
+
+// ---------------------------------------------------------------------------
+// Utilisateurs & sécurité
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  articles      Article[]
+  uploadedMedia Media[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Médiathèque
+// ---------------------------------------------------------------------------
+
+model Media {
+  id           String    @id @default(cuid())
+  filename     String
+  url          String
+  storageKey   String    @unique
+  type         MediaType @default(IMAGE)
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  alt          String?
+  caption      String?
+  uploadedById String?
+  uploadedBy   User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurantImages  RestaurantImage[]
+  restaurantMainFor Restaurant[]      @relation("RestaurantMainImage")
+  restaurantOgFor   Restaurant[]      @relation("RestaurantOgImage")
+  pageMainFor       Page[]            @relation("PageMainImage")
+  pageOgFor         Page[]            @relation("PageOgImage")
+  articleMainFor    Article[]         @relation("ArticleMainImage")
+  articleOgFor      Article[]         @relation("ArticleOgImage")
+  boardMemberFor    BoardMember[]
+  partnerLogoFor    Partner[]
+  galleryItems      GalleryItem[]
+  settingsLogoFor   SiteSetting[]     @relation("SettingsLogo")
+  settingsFaviconFor SiteSetting[]    @relation("SettingsFavicon")
+  settingsOgFor     SiteSetting[]     @relation("SettingsOgImage")
+
+  @@index([type])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Restaurants
+// ---------------------------------------------------------------------------
+
+model Restaurant {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  name             String
+  shortDescription String?
+  description      String?       @db.Text
+  address          String?
+  postalCode       String?
+  city             String?
+  phone            String?
+  email            String?
+  website          String?
+  googleMapsUrl    String?
+  facebookUrl      String?
+  instagramUrl     String?
+  openingHours     Json?
+  priceLunch       String?
+  priceDinner      String?
+  additionalInfo   String?       @db.Text
+  mainImageId      String?
+  mainImage        Media?        @relation("RestaurantMainImage", fields: [mainImageId], references: [id], onDelete: SetNull)
+  order            Int           @default(0)
+  isFeatured       Boolean       @default(false)
+  status           PublishStatus @default(DRAFT)
+  publishedAt      DateTime?
+  seoTitle         String?
+  seoDescription   String?
+  ogImageId        String?
+  ogImage          Media?        @relation("RestaurantOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  images       RestaurantImage[]
+  boardMembers BoardMember[]
+  galleryAlbum GalleryAlbum?
+
+  @@index([status, order])
+  @@map("restaurants")
+}
+
+model RestaurantImage {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  mediaId      String
+  media        Media      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption      String?
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@unique([restaurantId, mediaId])
+  @@index([restaurantId, order])
+  @@map("restaurant_images")
+}
+
+// ---------------------------------------------------------------------------
+// Pages (CMS générique — inclut bons cadeaux, mentions légales, etc.)
+// ---------------------------------------------------------------------------
+
+model Page {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  content        String        @db.Text
+  excerpt        String?
+  mainImageId    String?
+  mainImage      Media?        @relation("PageMainImage", fields: [mainImageId], references: [id], onDelete: SetNull)
+  status         PublishStatus @default(DRAFT)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String?
+  ogImage        Media?        @relation("PageOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  isSystem       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  navigationItems NavigationItem[]
+
+  @@index([status])
+  @@map("pages")
+}
+
+// ---------------------------------------------------------------------------
+// Actualités
+// ---------------------------------------------------------------------------
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  articles  Article[]
+
+  @@map("categories")
+}
+
+model Article {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  excerpt        String?
+  content        String        @db.Text
+  mainImageId    String?
+  mainImage      Media?        @relation("ArticleMainImage", fields: [mainImageId], references: [id], onDelete: SetNull)
+  categoryId     String?
+  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags           String[]      @default([])
+  status         PublishStatus @default(DRAFT)
+  publishedAt    DateTime?
+  scheduledFor   DateTime?
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String?
+  ogImage        Media?        @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  authorId       String?
+  author         User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@map("articles")
+}
+
+// ---------------------------------------------------------------------------
+// Bureau / Partenaires
+// ---------------------------------------------------------------------------
+
+model BoardMember {
+  id           String      @id @default(cuid())
+  firstName    String
+  lastName     String
+  role         String
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  photoId      String?
+  photo        Media?      @relation(fields: [photoId], references: [id], onDelete: SetNull)
+  bio          String?     @db.Text
+  order        Int         @default(0)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([isActive, order])
+  @@map("board_members")
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  websiteUrl  String?
+  logoId      String?
+  logo        Media?   @relation(fields: [logoId], references: [id], onDelete: SetNull)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@map("partners")
+}
+
+// ---------------------------------------------------------------------------
+// Galerie
+// ---------------------------------------------------------------------------
+
+model GalleryAlbum {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  title        String
+  description  String?
+  restaurantId String?     @unique
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  order        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  items GalleryItem[]
+
+  @@map("gallery_albums")
+}
+
+model GalleryItem {
+  id        String       @id @default(cuid())
+  albumId   String
+  album     GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media        @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  @@unique([albumId, mediaId])
+  @@index([albumId, order])
+  @@map("gallery_items")
+}
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+
+model NavigationItem {
+  id           String             @id @default(cuid())
+  label        String
+  linkType     NavigationLinkType @default(INTERNAL)
+  url          String?
+  pageId       String?
+  page         Page?              @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  parentId     String?
+  parent       NavigationItem?    @relation("NavigationChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children     NavigationItem[]   @relation("NavigationChildren")
+  order        Int                @default(0)
+  isActive     Boolean            @default(true)
+  openInNewTab Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([parentId, order])
+  @@map("navigation_items")
+}
+
+// ---------------------------------------------------------------------------
+// Messages de contact
+// ---------------------------------------------------------------------------
+
+model ContactMessage {
+  id          String               @id @default(cuid())
+  fullName    String
+  email       String
+  phone       String?
+  subject     String?
+  message     String               @db.Text
+  consentGdpr Boolean              @default(false)
+  status      ContactMessageStatus @default(UNREAD)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime             @default(now())
+  readAt      DateTime?
+  archivedAt  DateTime?
+
+  @@index([status, createdAt])
+  @@map("contact_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Paramètres du site (ligne unique)
+// ---------------------------------------------------------------------------
+
+model SiteSetting {
+  id                     String   @id @default("singleton")
+  siteName               String   @default("19 Bonnes Tables Sarthoises")
+  siteDescription        String?  @db.Text
+  logoId                 String?
+  logo                   Media?   @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  faviconId              String?
+  favicon                Media?   @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
+  contactEmail           String?
+  contactPhone           String?
+  address                String?
+  facebookUrl            String?
+  instagramUrl           String?
+  linkedinUrl            String?
+  seoDefaultTitle        String?
+  seoDefaultDescription  String?  @db.Text
+  ogDefaultImageId       String?
+  ogDefaultImage         Media?   @relation("SettingsOgImage", fields: [ogDefaultImageId], references: [id], onDelete: SetNull)
+  footerText             String?  @db.Text
+  gtmId                  String?
+  updatedAt              DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Redirections 301 (conservation du référencement existant)
+// ---------------------------------------------------------------------------
+
+model Redirect {
+  id         String   @id @default(cuid())
+  fromPath   String   @unique
+  toPath     String
+  statusCode Int      @default(301)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("redirects")
+}
+
+// ---------------------------------------------------------------------------
+// Journal d'audit
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}

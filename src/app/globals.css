@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-brand-cream text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-cta {
+    @apply inline-block rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white no-underline transition-colors hover:bg-brand-dark;
+  }
+}
+
+.prose a.btn-cta {
+  text-decoration: none;
+}
