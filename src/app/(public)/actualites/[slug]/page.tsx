@@ -11,6 +11,14 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
+function estimateReadingMinutes(html: string): number {
+  const words = html
+    .replace(/<[^>]*>/g, " ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 async function getArticle(slug: string) {
   const article = await prisma.article.findUnique({
     where: { slug },
@@ -68,14 +76,20 @@ export default async function ArticlePage({ params }: Props) {
             <p className="eyebrow justify-center">
               {format(article.publishedAt, "d MMMM yyyy", { locale: fr })}
               {article.category ? ` · ${article.category.name}` : ""}
+              {` · ${estimateReadingMinutes(article.content)} min de lecture`}
             </p>
           ) : null}
-          <h1 className="mt-3 text-center font-display text-4xl text-ink-900">{article.title}</h1>
+          <h1 className="mt-3 text-center font-display text-4xl text-ink-900 sm:text-5xl">{article.title}</h1>
           {article.author?.name ? (
             <p className="mt-3 text-center text-sm text-ink-500">Par {article.author.name}</p>
           ) : null}
 
-          <div className="prose prose-sm mx-auto mt-10 max-w-none pb-16" dangerouslySetInnerHTML={{ __html: article.content }} />
+          <div className="mx-auto mt-10 h-px w-16 bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
+
+          <div
+            className="prose sm:prose-lg mx-auto mt-10 max-w-none pb-16 [&>p:first-of-type]:font-display [&>p:first-of-type]:text-xl [&>p:first-of-type]:italic [&>p:first-of-type]:text-ink-700 [&_li::marker]:text-gold-600 [&_h2]:mt-12 [&_h3]:mt-8"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
 
           {article.tags.length > 0 ? (
             <div className="mb-16 flex flex-wrap gap-2">

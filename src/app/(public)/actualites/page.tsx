@@ -46,35 +46,36 @@ export default async function ActualitesIndexPage() {
         </section>
       ) : (
         <>
-          {/* Article à la une : traitement large pour éviter l'effet "grille
-              clairsemée" tant qu'il y a peu d'articles. */}
-          <section className="py-16 sm:py-20">
+          {/* Article à la une : légèrement mis en avant pour éviter l'effet
+              "grille clairsemée" tant qu'il y a peu d'articles, sans pour
+              autant écraser la page. */}
+          <section className="py-12 sm:py-16">
             <div className="container">
-              <Reveal>
+              <Reveal className="mx-auto max-w-3xl">
                 <Link
                   href={`/actualites/${featured.slug}`}
-                  className="group grid grid-cols-1 overflow-hidden rounded-md bg-cream-50 shadow-elevated lg:grid-cols-2"
+                  className="group grid grid-cols-1 overflow-hidden rounded-md bg-cream-50 shadow-elevated sm:grid-cols-5"
                 >
                   <ArticleCover
                     url={featured.mainImage?.url ?? null}
                     alt={featured.mainImage?.alt}
                     title={featured.title}
                     category={featured.category?.name}
-                    className="relative aspect-[4/3] overflow-hidden bg-ink-100 lg:aspect-auto"
+                    className="relative aspect-[16/10] overflow-hidden bg-ink-100 sm:col-span-2 sm:aspect-auto"
                   />
-                  <div className="flex flex-col justify-center p-8 sm:p-12">
+                  <div className="flex flex-col justify-center p-6 sm:col-span-3 sm:p-8">
                     <p className="eyebrow">À la une</p>
                     {featured.publishedAt ? (
-                      <p className="mt-4 text-xs uppercase tracking-wide text-ink-400">
+                      <p className="mt-3 text-xs uppercase tracking-wide text-ink-400">
                         {format(featured.publishedAt, "d MMMM yyyy", { locale: fr })}
                         {featured.category ? ` · ${featured.category.name}` : ""}
                       </p>
                     ) : null}
-                    <h2 className="mt-3 font-display text-3xl text-ink-900 sm:text-4xl">{featured.title}</h2>
+                    <h2 className="mt-2 font-display text-2xl text-ink-900 sm:text-3xl">{featured.title}</h2>
                     {featured.excerpt ? (
-                      <p className="mt-4 text-ink-600">{featured.excerpt}</p>
+                      <p className="mt-3 text-sm text-ink-600">{featured.excerpt}</p>
                     ) : null}
-                    <span className="link-sweep mt-6 inline-flex w-fit items-center gap-1.5 font-display text-lg text-wine-700">
+                    <span className="link-sweep mt-5 inline-flex w-fit items-center gap-1.5 text-sm font-medium text-wine-700">
                       Lire l&apos;article
                       <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                     </span>
