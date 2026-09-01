@@ -17,15 +17,18 @@ export default async function AdminPagesListPage() {
         </Link>
       </div>
       <SimpleAdminList
-        rows={pages}
-        columns={[
-          { header: "Titre", render: (p) => <span className="font-medium text-gray-900">{p.title}</span> },
-          { header: "Slug", render: (p) => <span className="text-gray-500">/{p.slug}</span> },
-          { header: "Statut", render: (p) => <StatusBadge status={p.status} /> },
-        ]}
-        editHref={(p) => `/admin/pages/${p.id}/edit`}
-        deleteEndpoint={(p) => `/api/admin/pages/${p.id}`}
-        confirmLabel={(p) => `Supprimer la page "${p.title}" ?`}
+        headers={["Titre", "Slug", "Statut"]}
+        rows={pages.map((p) => ({
+          id: p.id,
+          cells: [
+            <span key="title" className="font-medium text-gray-900">{p.title}</span>,
+            <span key="slug" className="text-gray-500">/{p.slug}</span>,
+            <StatusBadge key="status" status={p.status} />,
+          ],
+          editHref: `/admin/pages/${p.id}/edit`,
+          deleteEndpoint: `/api/admin/pages/${p.id}`,
+          confirmLabel: `Supprimer la page "${p.title}" ?`,
+        }))}
         emptyLabel="Aucune page pour le moment."
       />
     </div>

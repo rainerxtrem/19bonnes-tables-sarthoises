@@ -16,15 +16,18 @@ export default async function AdminPartnersPage() {
         </Link>
       </div>
       <SimpleAdminList
-        rows={partners}
-        columns={[
-          { header: "Nom", render: (p) => <span className="font-medium text-gray-900">{p.name}</span> },
-          { header: "Site web", render: (p) => p.websiteUrl ?? "—" },
-          { header: "Actif", render: (p) => (p.isActive ? "Oui" : "Non") },
-        ]}
-        editHref={(p) => `/admin/partenaires/${p.id}/edit`}
-        deleteEndpoint={(p) => `/api/admin/partners/${p.id}`}
-        confirmLabel={(p) => `Supprimer ${p.name} ?`}
+        headers={["Nom", "Site web", "Actif"]}
+        rows={partners.map((p) => ({
+          id: p.id,
+          cells: [
+            <span key="name" className="font-medium text-gray-900">{p.name}</span>,
+            <span key="website">{p.websiteUrl ?? "—"}</span>,
+            <span key="active">{p.isActive ? "Oui" : "Non"}</span>,
+          ],
+          editHref: `/admin/partenaires/${p.id}/edit`,
+          deleteEndpoint: `/api/admin/partners/${p.id}`,
+          confirmLabel: `Supprimer ${p.name} ?`,
+        }))}
         emptyLabel="Aucun partenaire pour le moment."
       />
     </div>

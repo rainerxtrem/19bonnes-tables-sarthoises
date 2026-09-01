@@ -1,36 +1,36 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 
-export interface SimpleAdminColumn<T> {
-  header: string;
-  render: (row: T) => React.ReactNode;
+export interface SimpleAdminRow {
+  id: string;
+  /** Cellules déjà rendues côté serveur (JSX = sérialisable ; une fonction
+   * "render" ne l'est pas et ne peut pas franchir la frontière Server →
+   * Client Component, voir https://nextjs.org/docs/messages/functions-cannot-be-passed-to-client-components). */
+  cells: ReactNode[];
+  editHref: string;
+  deleteEndpoint: string;
+  confirmLabel: string;
 }
 
-export function SimpleAdminList<T extends { id: string }>({
+export function SimpleAdminList({
+  headers,
   rows,
-  columns,
-  editHref,
-  deleteEndpoint,
-  confirmLabel,
   emptyLabel,
 }: {
-  rows: T[];
-  columns: SimpleAdminColumn<T>[];
-  editHref: (row: T) => string;
-  deleteEndpoint: (row: T) => string;
-  confirmLabel: (row: T) => string;
+  headers: string[];
+  rows: SimpleAdminRow[];
   emptyLabel: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
 
-  async function remove(row: T) {
-    if (!window.confirm(confirmLabel(row))) return;
+  async function remove(row: SimpleAdminRow) {
+    if (!window.confirm(row.confirmLabel)) return;
     setPending(row.id);
-    await fetch(deleteEndpoint(row), { method: "DELETE" });
+    await fetch(row.deleteEndpoint, { method: "DELETE" });
     router.refresh();
     setPending(null);
   }
@@ -40,9 +40,9 @@ export function SimpleAdminList<T extends { id: string }>({
       <table className="w-full text-sm">
         <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
           <tr>
-            {columns.map((col) => (
-              <th key={col.header} className="px-3 py-2">
-                {col.header}
+            {headers.map((header) => (
+              <th key={header} className="px-3 py-2">
+                {header}
               </th>
             ))}
             <th className="px-3 py-2">Actions</th>
@@ -51,14 +51,15 @@ export function SimpleAdminList<T extends { id: string }>({
         <tbody className="divide-y divide-gray-100">
           {rows.map((row) => (
             <tr key={row.id}>
-              {columns.map((col) => (
-                <td key={col.header} className="px-3 py-2">
-                  {col.render(row)}
+              {row.cells.map((cell, index) => (
+                // eslint-disable-next-line react/no-array-index-key -- l'ordre des cellules est stable par ligne
+                <td key={index} className="px-3 py-2">
+                  {cell}
                 </td>
               ))}
               <td className="px-3 py-2">
                 <div className="flex gap-3">
-                  <Link href={editHref(row)} className="text-brand hover:underline">
+                  <Link href={row.editHref} className="text-brand hover:underline">
                     Modifier
                   </Link>
                   <button

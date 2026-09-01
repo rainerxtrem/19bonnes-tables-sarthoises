@@ -19,16 +19,19 @@ export default async function AdminBureauPage() {
         </Link>
       </div>
       <SimpleAdminList
-        rows={members}
-        columns={[
-          { header: "Nom", render: (m) => <span className="font-medium text-gray-900">{m.firstName} {m.lastName}</span> },
-          { header: "Fonction", render: (m) => m.role },
-          { header: "Restaurant", render: (m) => m.restaurant?.name ?? "—" },
-          { header: "Actif", render: (m) => (m.isActive ? "Oui" : "Non") },
-        ]}
-        editHref={(m) => `/admin/bureau/${m.id}/edit`}
-        deleteEndpoint={(m) => `/api/admin/board-members/${m.id}`}
-        confirmLabel={(m) => `Supprimer ${m.firstName} ${m.lastName} ?`}
+        headers={["Nom", "Fonction", "Restaurant", "Actif"]}
+        rows={members.map((m) => ({
+          id: m.id,
+          cells: [
+            <span key="name" className="font-medium text-gray-900">{m.firstName} {m.lastName}</span>,
+            <span key="role">{m.role}</span>,
+            <span key="restaurant">{m.restaurant?.name ?? "—"}</span>,
+            <span key="active">{m.isActive ? "Oui" : "Non"}</span>,
+          ],
+          editHref: `/admin/bureau/${m.id}/edit`,
+          deleteEndpoint: `/api/admin/board-members/${m.id}`,
+          confirmLabel: `Supprimer ${m.firstName} ${m.lastName} ?`,
+        }))}
         emptyLabel="Aucun membre pour le moment."
       />
     </div>

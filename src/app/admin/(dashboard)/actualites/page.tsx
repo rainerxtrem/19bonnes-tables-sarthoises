@@ -17,15 +17,18 @@ export default async function AdminArticlesPage() {
         </Link>
       </div>
       <SimpleAdminList
-        rows={articles}
-        columns={[
-          { header: "Titre", render: (a) => <span className="font-medium text-gray-900">{a.title}</span> },
-          { header: "Catégorie", render: (a) => a.category?.name ?? "—" },
-          { header: "Statut", render: (a) => <StatusBadge status={a.status} /> },
-        ]}
-        editHref={(a) => `/admin/actualites/${a.id}/edit`}
-        deleteEndpoint={(a) => `/api/admin/articles/${a.id}`}
-        confirmLabel={(a) => `Supprimer l'article "${a.title}" ?`}
+        headers={["Titre", "Catégorie", "Statut"]}
+        rows={articles.map((a) => ({
+          id: a.id,
+          cells: [
+            <span key="title" className="font-medium text-gray-900">{a.title}</span>,
+            <span key="category">{a.category?.name ?? "—"}</span>,
+            <StatusBadge key="status" status={a.status} />,
+          ],
+          editHref: `/admin/actualites/${a.id}/edit`,
+          deleteEndpoint: `/api/admin/articles/${a.id}`,
+          confirmLabel: `Supprimer l'article "${a.title}" ?`,
+        }))}
         emptyLabel="Aucun article pour le moment."
       />
     </div>
