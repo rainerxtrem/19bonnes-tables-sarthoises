@@ -7,6 +7,9 @@ WORKDIR /app
 # ---------------------------------------------------------------------------
 FROM base AS deps
 COPY package.json package-lock.json* ./
+# Le schéma doit être présent avant `npm ci` : le postinstall (`prisma
+# generate`) en a besoin, sinon npm ci échoue (schema.prisma introuvable).
+COPY prisma ./prisma
 RUN npm ci
 
 # ---------------------------------------------------------------------------
@@ -25,6 +28,7 @@ RUN npm run build
 # migrations et le seed directement depuis le conteneur en production).
 FROM base AS prod-deps
 COPY package.json package-lock.json* ./
+COPY prisma ./prisma
 RUN npm ci --omit=dev
 
 # ---------------------------------------------------------------------------
