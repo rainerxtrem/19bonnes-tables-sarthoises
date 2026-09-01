@@ -27,6 +27,7 @@ export function MediaPicker({
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -43,16 +44,26 @@ export function MediaPicker({
   async function handleUpload(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
+    setError(null);
+    const failures: string[] = [];
     try {
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch("/api/admin/media", { method: "POST", body: formData });
-        if (res.ok) {
-          const data = await res.json();
-          setItems((prev) => [data.media, ...prev]);
+        try {
+          const res = await fetch("/api/admin/media", { method: "POST", body: formData });
+          if (res.ok) {
+            const data = await res.json();
+            setItems((prev) => [data.media, ...prev]);
+          } else {
+            const data = await res.json().catch(() => null);
+            failures.push(`${file.name} : ${data?.error ?? `erreur ${res.status}`}`);
+          }
+        } catch {
+          failures.push(`${file.name} : échec de l'envoi (réseau)`);
         }
       }
+      if (failures.length > 0) setError(failures.join(" · "));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -111,6 +122,7 @@ export function MediaPicker({
             className="hidden"
             onChange={(e) => void handleUpload(e.target.files)}
           />
+          {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
         </div>
 
         <div className="flex-1 overflow-y-auto">

@@ -1,7 +1,11 @@
 # syntax=docker/dockerfile:1
 
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat openssl
+# su-exec : permet de démarrer le conteneur en root (nécessaire pour
+# corriger les permissions du volume monté à l'exécution) puis de basculer
+# vers l'utilisateur non-root avant de lancer l'application — voir
+# docker-entrypoint.sh.
+RUN apk add --no-cache libc6-compat openssl su-exec
 WORKDIR /app
 
 # ---------------------------------------------------------------------------
@@ -47,7 +51,11 @@ COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN mkdir -p /app/storage/uploads && chown -R nextjs:nodejs /app/storage /app/.next
 RUN chmod +x ./docker-entrypoint.sh
 
-USER nextjs
+# Pas de USER ici : un volume monté par la plateforme à l'exécution (ex.
+# Railway) écrase la propriété fixée ci-dessus par `chown`, généralement en
+# root. L'entrypoint démarre donc en root pour ré-appliquer le chown sur le
+# volume réel, puis bascule vers `nextjs` via su-exec avant de lancer
+# l'application (jamais de code applicatif exécuté en root).
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
