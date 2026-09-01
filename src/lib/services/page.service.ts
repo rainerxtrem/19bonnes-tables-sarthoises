@@ -7,7 +7,7 @@ export async function listPagesAdmin() {
 }
 
 export async function getPageById(id: string) {
-  return prisma.page.findUnique({ where: { id }, include: { mainImage: true } });
+  return prisma.page.findUnique({ where: { id }, include: { mainImage: true, ogImage: true } });
 }
 
 function emptyToNull(value?: string | null) {

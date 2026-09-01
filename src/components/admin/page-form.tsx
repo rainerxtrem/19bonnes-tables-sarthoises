@@ -2,22 +2,39 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { pageSchema, type PageInput } from "@/lib/validation/page";
 import { Button } from "@/components/ui/button";
 import { FormField, Input, Select, Textarea } from "@/components/ui/field";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
-import type { Page } from "@prisma/client";
+import { MediaPicker, type PickedMedia } from "@/components/admin/media-picker";
+import type { Page, Media } from "@prisma/client";
 
-export function PageForm({ page }: { page?: Page | null }) {
+type PageWithRelations = Page & {
+  mainImage?: Media | null;
+  ogImage?: Media | null;
+};
+
+function toPreview(media?: Media | null): PickedMedia | null {
+  if (!media) return null;
+  return { id: media.id, url: media.url, alt: media.alt, filename: media.filename };
+}
+
+export function PageForm({ page }: { page?: PageWithRelations | null }) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [mainImagePickerOpen, setMainImagePickerOpen] = useState(false);
+  const [ogImagePickerOpen, setOgImagePickerOpen] = useState(false);
+  const [mainImagePreview, setMainImagePreview] = useState<PickedMedia | null>(toPreview(page?.mainImage));
+  const [ogImagePreview, setOgImagePreview] = useState<PickedMedia | null>(toPreview(page?.ogImage));
 
   const {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PageInput>({
     resolver: zodResolver(pageSchema),
@@ -26,6 +43,8 @@ export function PageForm({ page }: { page?: Page | null }) {
       slug: page?.slug ?? "",
       content: page?.content ?? "",
       excerpt: page?.excerpt ?? "",
+      mainImageId: page?.mainImageId ?? null,
+      ogImageId: page?.ogImageId ?? null,
       status: page?.status ?? "DRAFT",
       seoTitle: page?.seoTitle ?? "",
       seoDescription: page?.seoDescription ?? "",
@@ -102,6 +121,92 @@ export function PageForm({ page }: { page?: Page | null }) {
             {isSubmitting ? "Enregistrement..." : isEdit ? "Enregistrer" : "Créer"}
           </Button>
           {serverError ? <p className="text-sm text-red-600">{serverError}</p> : null}
+        </section>
+
+        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-900">Photo principale</h2>
+          <p className="text-xs text-gray-500">
+            Pour la page d&apos;accueil, c&apos;est l&apos;image de fond du grand bandeau (hero).
+          </p>
+          {mainImagePreview ? (
+            <div className="relative aspect-video overflow-hidden rounded-md">
+              <Image src={mainImagePreview.url} alt={mainImagePreview.alt ?? ""} fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="flex aspect-video items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+              Aucune image
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" size="sm" onClick={() => setMainImagePickerOpen(true)}>
+              Choisir une image
+            </Button>
+            {mainImagePreview ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setMainImagePreview(null);
+                  setValue("mainImageId", null);
+                }}
+              >
+                Retirer
+              </Button>
+            ) : null}
+          </div>
+          <MediaPicker
+            open={mainImagePickerOpen}
+            onClose={() => setMainImagePickerOpen(false)}
+            onSelect={([media]) => {
+              if (!media) return;
+              setValue("mainImageId", media.id);
+              setMainImagePreview(media);
+            }}
+          />
+        </section>
+
+        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-900">Image de partage (Open Graph)</h2>
+          <p className="text-xs text-gray-500">
+            Utilisée par défaut à la place de la photo principale lors du partage sur les réseaux sociaux.
+          </p>
+          {ogImagePreview ? (
+            <div className="relative aspect-video overflow-hidden rounded-md">
+              <Image src={ogImagePreview.url} alt={ogImagePreview.alt ?? ""} fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="flex aspect-video items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+              Aucune image
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" size="sm" onClick={() => setOgImagePickerOpen(true)}>
+              Choisir une image
+            </Button>
+            {ogImagePreview ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setOgImagePreview(null);
+                  setValue("ogImageId", null);
+                }}
+              >
+                Retirer
+              </Button>
+            ) : null}
+          </div>
+          <MediaPicker
+            open={ogImagePickerOpen}
+            onClose={() => setOgImagePickerOpen(false)}
+            onSelect={([media]) => {
+              if (!media) return;
+              setValue("ogImageId", media.id);
+              setOgImagePreview(media);
+            }}
+          />
         </section>
       </div>
     </form>
