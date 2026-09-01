@@ -140,7 +140,7 @@ export default async function ActualitesIndexPage() {
                 </h2>
               </Reveal>
               <Reveal delay={140}>
-                <Link href="/nos-restaurants" className="btn-cta mt-8">
+                <Link href="/#restaurants" className="btn-cta mt-8">
                   Découvrir nos restaurants
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>

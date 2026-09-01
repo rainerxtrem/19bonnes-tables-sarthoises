@@ -409,16 +409,16 @@ async function main() {
   // ---------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------
-  // Menu volontairement réduit à 6 entrées courtes (chacune tient sur une
-  // ligne dans le header) : "Accueil" est déjà accessible via le logo, et
-  // "Bons cadeaux" reste accessible depuis le footer.
+  // Menu volontairement réduit : "Accueil" est déjà accessible via le logo,
+  // "Bons cadeaux" reste accessible depuis le footer, et les restaurants
+  // sont listés en intégralité directement sur la page d'accueil
+  // (#restaurants) plutôt que sur une page/onglet séparé.
   const navItems: { label: string; linkType: "INTERNAL" | "EXTERNAL"; url?: string; pageId?: string; order: number }[] = [
-    { label: "Restaurants", linkType: "INTERNAL", url: "/nos-restaurants", order: 1 },
-    { label: "L'association", linkType: "INTERNAL", url: "/le-bureau", order: 2 },
-    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 3 },
-    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 4 },
-    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 5 },
-    { label: "Contact", linkType: "INTERNAL", url: "/contact", order: 6 },
+    { label: "L'association", linkType: "INTERNAL", url: "/le-bureau", order: 1 },
+    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 2 },
+    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 3 },
+    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 4 },
+    { label: "Contact", linkType: "INTERNAL", url: "/contact", order: 5 },
   ];
 
   for (const item of navItems) {

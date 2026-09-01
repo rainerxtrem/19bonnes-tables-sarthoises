@@ -27,7 +27,6 @@ export default async function HomePage() {
     prisma.boardMember.count({ where: { isActive: true } }),
   ]);
 
-  const showcased = restaurants.slice(0, 6);
   const towns = Array.from(new Set(restaurants.map((r) => r.city).filter((c): c is string => Boolean(c))));
 
   return (
@@ -66,7 +65,7 @@ export default async function HomePage() {
           </Reveal>
           <Reveal delay={300}>
             <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/nos-restaurants" className="btn-cta">
+              <Link href="#restaurants" className="btn-cta">
                 Découvrir nos restaurants
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
@@ -108,11 +107,11 @@ export default async function HomePage() {
             </Reveal>
           </div>
 
-          {showcased.length === 0 ? (
+          {restaurants.length === 0 ? (
             <p className="mt-16 text-center text-sm text-ink-500">Aucun restaurant publié pour le moment.</p>
           ) : (
             <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {showcased.map((restaurant, index) => (
+              {restaurants.map((restaurant, index) => (
                 <Reveal key={restaurant.id} delay={(index % 3) * 100} className="h-full">
                   <RestaurantCard
                     slug={restaurant.slug}
@@ -121,24 +120,11 @@ export default async function HomePage() {
                     city={restaurant.city}
                     imageUrl={restaurant.mainImage?.url ?? null}
                     imageAlt={restaurant.mainImage?.alt ?? null}
-                    featured={index === 0}
                   />
                 </Reveal>
               ))}
             </div>
           )}
-
-          {restaurants.length > 0 ? (
-            <div className="mt-16 flex justify-center">
-              <Link
-                href="/nos-restaurants"
-                className="link-sweep inline-flex items-center gap-2 font-display text-lg text-wine-700"
-              >
-                Découvrir tous les restaurants
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </div>
-          ) : null}
         </div>
       </section>
 

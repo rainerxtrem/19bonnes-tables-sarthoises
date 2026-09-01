@@ -9,7 +9,6 @@ export function RestaurantCard({
   city,
   imageUrl,
   imageAlt,
-  featured = false,
 }: {
   slug: string;
   name: string;
@@ -17,14 +16,15 @@ export function RestaurantCard({
   city?: string | null;
   imageUrl: string | null;
   imageAlt: string | null;
-  featured?: boolean;
 }) {
   return (
     <Link
       href={`/${slug}`}
       className="group relative flex h-full flex-col overflow-hidden rounded-md bg-cream-50 shadow-card transition-all duration-500 ease-editorial hover:-translate-y-1 hover:shadow-elevated"
     >
-      <div className={`relative overflow-hidden bg-ink-100 ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
+      {/* Même ratio pour toutes les cartes : une grille homogène plutôt que
+          des hauteurs qui sautent d'une carte à l'autre. */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-ink-100">
         {imageUrl ? (
           <Image
             src={imageUrl}

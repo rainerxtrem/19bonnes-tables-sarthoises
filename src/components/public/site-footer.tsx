@@ -21,7 +21,7 @@ export function SiteFooter({
         <div>
           <p className="eyebrow text-cream-100/70">Découvrir</p>
           <nav className="mt-4 flex flex-col gap-2 text-sm text-cream-100/80">
-            <Link href="/nos-restaurants" className="w-fit hover:text-gold-300">
+            <Link href="/#restaurants" className="w-fit hover:text-gold-300">
               Nos restaurants
             </Link>
             <Link href="/le-bureau" className="w-fit hover:text-gold-300">

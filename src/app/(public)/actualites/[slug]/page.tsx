@@ -123,7 +123,7 @@ export default async function ArticlePage({ params }: Props) {
               )}
             </div>
             <Link
-              href={otherArticle ? `/actualites/${otherArticle.slug}` : "/nos-restaurants"}
+              href={otherArticle ? `/actualites/${otherArticle.slug}` : "/#restaurants"}
               className="btn-cta shrink-0"
             >
               {otherArticle ? "Lire" : "Découvrir"}

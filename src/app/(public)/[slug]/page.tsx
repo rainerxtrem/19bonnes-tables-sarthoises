@@ -104,7 +104,7 @@ export default async function SlugPage({ params }: Props) {
 
           <div className="container relative z-10">
             <Link
-              href="/nos-restaurants"
+              href="/#restaurants"
               className="link-sweep inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-cream-100/80"
             >
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
