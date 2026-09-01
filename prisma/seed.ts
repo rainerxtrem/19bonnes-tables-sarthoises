@@ -413,12 +413,12 @@ async function main() {
 
   const navItems: { label: string; linkType: "INTERNAL" | "EXTERNAL"; url?: string; pageId?: string; order: number }[] = [
     { label: "Accueil", linkType: "INTERNAL", url: "/", order: 1 },
-    { label: "Bons cadeaux", linkType: "INTERNAL", pageId: bonCadeauxPage?.id, order: 2 },
-    { label: "Le bureau", linkType: "INTERNAL", url: "/le-bureau", order: 3 },
-    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 4 },
-    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 5 },
-    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 6 },
-    { label: "Contact", linkType: "INTERNAL", url: "/contact", order: 7 },
+    { label: "Nos restaurants", linkType: "INTERNAL", url: "/nos-restaurants", order: 2 },
+    { label: "L'association", linkType: "INTERNAL", url: "/le-bureau", order: 3 },
+    { label: "Actualités", linkType: "INTERNAL", url: "/actualites", order: 4 },
+    { label: "Galerie", linkType: "INTERNAL", url: "/galerie", order: 5 },
+    { label: "Partenaires", linkType: "INTERNAL", url: "/partenaires", order: 6 },
+    { label: "Bons cadeaux", linkType: "INTERNAL", pageId: bonCadeauxPage?.id, order: 7 },
   ];
 
   for (const item of navItems) {

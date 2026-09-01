@@ -13,7 +13,7 @@ export function LightboxGallery({ photos }: { photos: GalleryPhoto[] }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   if (photos.length === 0) {
-    return <p className="text-center text-sm text-gray-500">Aucune photo pour le moment.</p>;
+    return <p className="text-center text-sm text-ink-500">Aucune photo pour le moment.</p>;
   }
 
   const active = activeIndex !== null ? photos[activeIndex] : null;
@@ -33,9 +33,9 @@ export function LightboxGallery({ photos }: { photos: GalleryPhoto[] }) {
           <button
             key={photo.id}
             onClick={() => setActiveIndex(index)}
-            className="relative aspect-square overflow-hidden rounded-md bg-gray-100"
+            className="group relative aspect-square overflow-hidden rounded-sm bg-ink-100"
           >
-            <Image src={photo.url} alt={photo.alt ?? ""} fill className="object-cover transition-transform hover:scale-105" />
+            <Image src={photo.url} alt={photo.alt ?? ""} fill className="object-cover transition-transform duration-500 ease-editorial group-hover:scale-110" />
           </button>
         ))}
       </div>
