@@ -9,10 +9,16 @@ import { NextResponse } from "next/server";
  * par la route API et les server components).
  */
 export const authConfig: NextAuthConfig = {
-  // Signale à Auth.js qu'il ne doit pas faire confiance au Host d'une
-  // requête pour déterminer la page de connexion par défaut : chaque zone
-  // protégée (admin / restaurateur) redirige explicitement vers sa propre
-  // page de connexion ci-dessous, `pages.signIn` n'est qu'un repli.
+  // Auth.js ne fait confiance automatiquement qu'à certains hôtes connus
+  // (Vercel...). Railway (et tout hébergeur derrière un proxy inconnu
+  // d'Auth.js) doit être explicitement approuvé, sinon toutes les requêtes
+  // /api/auth/* échouent avec "UntrustedHost" — voir
+  // https://errors.authjs.dev#untrustedhost. Sans risque ici : on ne route
+  // que via NEXTAUTH_URL/le domaine configuré, pas un Host arbitraire.
+  trustHost: true,
+  // `pages.signIn` n'est qu'un repli générique : chaque zone protégée
+  // (admin / restaurateur) redirige explicitement vers sa propre page de
+  // connexion dans le callback `authorized` ci-dessous.
   pages: {
     signIn: "/admin/login",
   },
