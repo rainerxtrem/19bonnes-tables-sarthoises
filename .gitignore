@@ -31,3 +31,6 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# fichiers de message de commit temporaires
+.git-commit-msg.txt
