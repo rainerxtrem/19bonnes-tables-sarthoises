@@ -13,6 +13,12 @@ function getTransporter() {
     auth: process.env.SMTP_USER
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
       : undefined,
+    // Sans ces bornes, une connexion SMTP qui traîne peut rester ouverte
+    // indéfiniment et bloquer l'action serveur appelante (le formulaire
+    // reste alors grisé sur "Envoi..." sans jamais se débloquer).
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 10_000,
   });
   return transporter;
 }

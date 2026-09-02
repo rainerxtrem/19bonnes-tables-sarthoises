@@ -57,7 +57,9 @@ export async function submitContactForm(
 
   const notifyEmail = process.env.CONTACT_NOTIFICATION_EMAIL;
   if (notifyEmail) {
-    await sendMail({
+    // Volontairement non attendu : l'envoi ne doit pas bloquer la réponse
+    // au formulaire (le message est déjà enregistré en base à ce stade).
+    sendMail({
       to: notifyEmail,
       subject: `Nouveau message de contact — ${message.fullName}`,
       text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,

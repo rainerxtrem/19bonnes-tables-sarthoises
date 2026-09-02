@@ -19,7 +19,9 @@ export async function subscribeToNewsletter(email: string, ipAddress?: string) {
         where: { id: existing.id },
         data: { unsubscribedAt: null, subscribedAt: new Date() },
       });
-      await sendWelcomeEmail(reactivated.email, reactivated.unsubscribeToken);
+      // Volontairement non attendu : l'envoi ne doit pas bloquer la réponse
+      // au formulaire (l'inscription est déjà enregistrée en base).
+      void sendWelcomeEmail(reactivated.email, reactivated.unsubscribeToken);
       return reactivated;
     }
     throw new AlreadySubscribedError();
@@ -28,7 +30,7 @@ export async function subscribeToNewsletter(email: string, ipAddress?: string) {
   const subscriber = await prisma.newsletterSubscriber.create({
     data: { email, ipAddress },
   });
-  await sendWelcomeEmail(subscriber.email, subscriber.unsubscribeToken);
+  void sendWelcomeEmail(subscriber.email, subscriber.unsubscribeToken);
   return subscriber;
 }
 
