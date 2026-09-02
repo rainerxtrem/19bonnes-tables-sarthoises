@@ -12,9 +12,14 @@ export async function GET(request: NextRequest) {
   }
 
   const configs = [
-    { label: "465 implicit TLS", port: 465, secure: true, requireTLS: false },
-    { label: "587 STARTTLS", port: 587, secure: false, requireTLS: true },
-    { label: "25 STARTTLS", port: 25, secure: false, requireTLS: true },
+    { label: "IONOS 465 implicit TLS", host: "smtp.ionos.fr", port: 465, secure: true, requireTLS: false, auth: true },
+    { label: "IONOS 587 STARTTLS", host: "smtp.ionos.fr", port: 587, secure: false, requireTLS: true, auth: true },
+    { label: "IONOS 25 STARTTLS", host: "smtp.ionos.fr", port: 25, secure: false, requireTLS: true, auth: true },
+    // Hôte tiers connu pour être joignable, sans authentification (on
+    // s'attend à un échec d'auth mais PAS à un timeout) — permet de
+    // distinguer un blocage réseau général de Railway d'un problème
+    // spécifique à IONOS (ex. filtrage anti-spam par plage d'IP cloud).
+    { label: "Gmail 587 (sans auth valide)", host: "smtp.gmail.com", port: 587, secure: false, requireTLS: true, auth: false },
   ];
 
   const results = [];
@@ -22,11 +27,11 @@ export async function GET(request: NextRequest) {
     const start = Date.now();
     try {
       const transporter = nodemailer.createTransport({
-        host: "smtp.ionos.fr",
+        host: config.host,
         port: config.port,
         secure: config.secure,
         requireTLS: config.requireTLS,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+        auth: config.auth ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } : undefined,
         connectionTimeout: 8_000,
         greetingTimeout: 8_000,
         socketTimeout: 8_000,
