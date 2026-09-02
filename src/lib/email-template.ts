@@ -73,6 +73,19 @@ export function renderEmail({
 </html>`;
 }
 
+/** Convertit un texte brut (saisi dans un simple textarea) en paragraphes
+ * HTML échappés — évite de dépendre d'un éditeur riche pour les campagnes
+ * de newsletter, dont le contenu doit rester simple et fiable à l'affichage
+ * dans un client mail. */
+export function textToParagraphsHtml(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map((para) => para.trim())
+    .filter(Boolean)
+    .map((para) => `<p style="margin:0 0 14px;">${escapeHtml(para).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
 /** Bouton d'action stylé (lien), à insérer tel quel dans un bodyHtml. */
 export function emailButton(label: string, url: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td bgcolor="${WINE_700}" style="background-color:${WINE_700}; border-radius:3px;"><a href="${url}" style="display:inline-block; padding:12px 24px; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:${CREAM_50}; text-decoration:none; letter-spacing:0.02em;">${escapeHtml(label)}</a></td></tr></table>`;

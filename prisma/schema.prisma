@@ -63,9 +63,10 @@ model User {
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
-  articles      Article[]
-  uploadedMedia Media[]
-  auditLogs     AuditLog[]
+  articles            Article[]
+  uploadedMedia       Media[]
+  auditLogs           AuditLog[]
+  newsletterCampaigns NewsletterCampaign[]
 
   @@map("users")
 }
@@ -241,8 +242,24 @@ model Article {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  newsletterCampaigns NewsletterCampaign[]
+
   @@index([status, publishedAt])
   @@map("articles")
+}
+
+model NewsletterCampaign {
+  id             String   @id @default(cuid())
+  subject        String
+  introText      String   @db.Text
+  articleId      String?
+  article        Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  recipientCount Int
+  sentAt         DateTime @default(now())
+  sentById       String?
+  sentBy         User?    @relation(fields: [sentById], references: [id], onDelete: SetNull)
+
+  @@map("newsletter_campaigns")
 }
 
 // ---------------------------------------------------------------------------
