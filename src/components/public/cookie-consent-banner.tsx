@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getStoredConsent, setStoredConsent, type CookieConsentValue } from "@/lib/cookie-consent";
+import { loadAnalytics } from "@/lib/analytics";
 
 export function CookieConsentBanner() {
   // false par défaut (y compris lors du premier rendu serveur) pour éviter
@@ -16,6 +17,7 @@ export function CookieConsentBanner() {
 
   function choose(value: CookieConsentValue) {
     setStoredConsent(value);
+    if (value === "accepted") loadAnalytics();
     setVisible(false);
   }
 

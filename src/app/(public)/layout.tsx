@@ -3,6 +3,7 @@ import { getPublicNavigationTree } from "@/lib/services/navigation.service";
 import { SiteHeader } from "@/components/public/site-header";
 import { SiteFooter } from "@/components/public/site-footer";
 import { CookieConsentBanner } from "@/components/public/cookie-consent-banner";
+import { AnalyticsLoader } from "@/components/public/analytics-loader";
 import { absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,7 @@ export default async function PublicLayout({ children }: { children: React.React
         footerText={settings.footerText}
       />
       <CookieConsentBanner />
+      <AnalyticsLoader />
     </div>
   );
 }
