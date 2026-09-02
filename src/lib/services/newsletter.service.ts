@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { sendMail } from "@/lib/mailer";
 import { absoluteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/services/settings.service";
+import { renderEmail, emailButton } from "@/lib/email-template";
 
 export class AlreadySubscribedError extends Error {
   constructor() {
@@ -58,11 +59,24 @@ export async function listActiveSubscribers() {
 async function sendWelcomeEmail(email: string, unsubscribeToken: string) {
   const settings = await getSiteSettings();
   const unsubscribeUrl = absoluteUrl(`/newsletter/desinscription?token=${unsubscribeToken}`);
+  const homeUrl = absoluteUrl("/");
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Bonjour,</p>
+    <p style="margin:0 0 16px;">Merci de votre inscription à la newsletter des <strong>${settings.siteName}</strong> !</p>
+    <p style="margin:0 0 8px;">Vous recevrez de temps en temps nos actualités : recettes de terroir, événements et vie de l'association.</p>
+    ${emailButton("Découvrir le site", homeUrl)}
+  `;
 
   await sendMail({
     to: email,
     subject: `Bienvenue dans la newsletter des ${settings.siteName}`,
     text: `Merci de votre inscription à la newsletter des ${settings.siteName} !\n\nVous recevrez de temps en temps nos actualités : recettes de terroir, événements et vie de l'association.\n\nPour vous désinscrire à tout moment : ${unsubscribeUrl}`,
-    html: `<p>Merci de votre inscription à la newsletter des <strong>${settings.siteName}</strong> !</p><p>Vous recevrez de temps en temps nos actualités : recettes de terroir, événements et vie de l'association.</p><p style="color:#6f6455;font-size:12px;margin-top:24px;">Pour vous désinscrire à tout moment : <a href="${unsubscribeUrl}">${unsubscribeUrl}</a></p>`,
+    html: renderEmail({
+      siteName: settings.siteName,
+      preheader: `Merci de votre inscription à la newsletter des ${settings.siteName} !`,
+      bodyHtml,
+      footerNote: `Pour vous désinscrire à tout moment : <a href="${unsubscribeUrl}" style="color:#642227;">${unsubscribeUrl}</a>`,
+    }),
   }).catch((error) => console.error("Envoi email bienvenue newsletter échoué:", error));
 }

@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db/prisma";
 import { contactFormSchema } from "@/lib/validation/contact";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMail } from "@/lib/mailer";
+import { renderEmail, escapeHtml } from "@/lib/email-template";
+import { getSiteSettings } from "@/lib/services/settings.service";
 
 export type ContactFormState = {
   success?: boolean;
@@ -63,13 +65,34 @@ export async function submitContactForm(
     // garantit que la promesse s'exécute jusqu'au bout même une fois la
     // réponse HTTP envoyée (Next.js peut sinon couper les fetch encore en
     // cours dès la fin du cycle de la requête).
-    after(() =>
-      sendMail({
-        to: notifyEmail,
-        subject: `Nouveau message de contact — ${message.fullName}`,
-        text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,
-      }).catch((error) => console.error("Envoi email contact échoué:", error))
-    );
+    after(async () => {
+      try {
+        const settings = await getSiteSettings();
+        const bodyHtml = `
+          <p style="margin:0 0 16px;">Nouveau message reçu via le formulaire de contact du site :</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px; font-size:14px;">
+            <tr><td style="padding:4px 0; color:#6f6455; width:90px;">Nom</td><td style="padding:4px 0;"><strong>${escapeHtml(message.fullName)}</strong></td></tr>
+            <tr><td style="padding:4px 0; color:#6f6455;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(message.email)}" style="color:#642227;">${escapeHtml(message.email)}</a></td></tr>
+            ${message.phone ? `<tr><td style="padding:4px 0; color:#6f6455;">Téléphone</td><td style="padding:4px 0;">${escapeHtml(message.phone)}</td></tr>` : ""}
+            <tr><td style="padding:4px 0; color:#6f6455;">Objet</td><td style="padding:4px 0;">${escapeHtml(message.subject ?? "—")}</td></tr>
+          </table>
+          <p style="margin:0 0 8px; padding:16px; background-color:#faf6ee; border-radius:3px; white-space:pre-wrap;">${escapeHtml(message.message)}</p>
+        `;
+
+        await sendMail({
+          to: notifyEmail,
+          subject: `Nouveau message de contact — ${message.fullName}`,
+          text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,
+          html: renderEmail({
+            siteName: settings.siteName,
+            preheader: `Nouveau message de ${message.fullName}`,
+            bodyHtml,
+          }),
+        });
+      } catch (error) {
+        console.error("Envoi email contact échoué:", error);
+      }
+    });
   }
 
   return { success: true };
