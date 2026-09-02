@@ -23,6 +23,25 @@ COPY . .
 # Valeur bidon uniquement nécessaire pour que `next build` puisse s'exécuter
 # (aucune requête DB n'est faite au build ; la vraie valeur vient du .env en prod).
 ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+
+# Les variables NEXT_PUBLIC_* sont figées ("inlinées") dans le bundle
+# JavaScript envoyé au navigateur AU MOMENT DU BUILD, pas lues à l'exécution
+# comme les autres variables server-side — elles doivent donc être
+# disponibles ici, via --build-arg (Railway les transmet automatiquement
+# pour tout ARG dont le nom correspond à une variable configurée sur le
+# service). Sans ça, tout code client qui les lit reçoit `undefined`, figé
+# pour de bon dans l'image (voir l'intégration Umami).
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_SITE_NAME
+ARG NEXT_PUBLIC_MEDIA_BASE_URL
+ARG NEXT_PUBLIC_UMAMI_SCRIPT_URL
+ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_SITE_NAME=$NEXT_PUBLIC_SITE_NAME \
+    NEXT_PUBLIC_MEDIA_BASE_URL=$NEXT_PUBLIC_MEDIA_BASE_URL \
+    NEXT_PUBLIC_UMAMI_SCRIPT_URL=$NEXT_PUBLIC_UMAMI_SCRIPT_URL \
+    NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID
+
 RUN npx prisma generate
 RUN npm run build
 
