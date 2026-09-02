@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
 import { LightboxGallery } from "@/components/public/lightbox-gallery";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,17 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const album = await prisma.galleryAlbum.findUnique({ where: { slug } });
-  return { title: album ? album.title : "Galerie" };
+  const album = await prisma.galleryAlbum.findUnique({
+    where: { slug },
+    include: { items: { include: { media: true }, take: 1 } },
+  });
+  if (!album) return { title: "Galerie" };
+  return buildMetadata({
+    title: album.title,
+    description: `Photos du restaurant ${album.title}, membre de l'association des 19 Bonnes Tables Sarthoises.`,
+    path: `/galerie/${slug}`,
+    image: album.items[0]?.media.url,
+  });
 }
 
 export default async function GalerieAlbumPage({ params }: Props) {

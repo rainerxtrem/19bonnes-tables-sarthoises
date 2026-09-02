@@ -6,9 +6,15 @@ import { fr } from "date-fns/locale";
 import { Reveal } from "@/components/public/reveal";
 import { ArticleCover } from "@/components/public/article-cover";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Actualités" };
+export const metadata: Metadata = buildMetadata({
+  title: "Actualités",
+  description:
+    "Recettes de terroir, vie de l'association, événements : suivez l'actualité des 19 Bonnes Tables Sarthoises et de ses restaurants membres.",
+  path: "/actualites",
+});
 
 export default async function ActualitesIndexPage() {
   const articles = await prisma.article.findMany({

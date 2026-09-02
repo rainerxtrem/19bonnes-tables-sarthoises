@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { listPublishedRestaurants } from "@/lib/services/restaurant.service";
 import { RestaurantDirectory } from "@/components/public/restaurant-directory";
 import { Reveal } from "@/components/public/reveal";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Nos restaurants",
   description:
     "Le guide des restaurants membres des 19 Bonnes Tables Sarthoises : découvrez leurs adresses, leur cuisine et leur savoir-faire à travers la Sarthe.",
-};
+  path: "/nos-restaurants",
+});
 
 export default async function NosRestaurantsPage() {
   const restaurants = await listPublishedRestaurants();

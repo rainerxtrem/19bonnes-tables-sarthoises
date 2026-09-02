@@ -3,9 +3,15 @@ import { Mail } from "lucide-react";
 import { getSiteSettings } from "@/lib/services/settings.service";
 import { ContactForm } from "@/components/public/contact-form";
 import { Reveal } from "@/components/public/reveal";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = buildMetadata({
+  title: "Contact",
+  description:
+    "Contactez l'association des 19 Bonnes Tables Sarthoises pour toute question ou demande de collaboration. Pour réserver, contactez directement le restaurant de votre choix.",
+  path: "/contact",
+});
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();

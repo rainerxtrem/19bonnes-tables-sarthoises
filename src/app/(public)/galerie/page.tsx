@@ -3,9 +3,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db/prisma";
 import { Reveal } from "@/components/public/reveal";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Galerie" };
+export const metadata: Metadata = buildMetadata({
+  title: "Phototèque",
+  description:
+    "Découvrez en images les restaurants membres de l'association des 19 Bonnes Tables Sarthoises : salles, plats, ambiances, à travers toute la Sarthe.",
+  path: "/galerie",
+});
 
 export default async function GalerieIndexPage() {
   const albums = await prisma.galleryAlbum.findMany({

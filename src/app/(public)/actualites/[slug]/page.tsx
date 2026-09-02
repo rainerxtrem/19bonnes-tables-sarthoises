@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArticleCover } from "@/components/public/article-cover";
+import { buildMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +33,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) return {};
-  return {
+  return buildMetadata({
     title: article.seoTitle || article.title,
-    description: article.seoDescription || article.excerpt || undefined,
-    openGraph: article.ogImage || article.mainImage
-      ? { images: [{ url: (article.ogImage ?? article.mainImage)!.url }] }
-      : undefined,
-  };
+    description: article.seoDescription || article.excerpt,
+    path: `/actualites/${slug}`,
+    image: (article.ogImage ?? article.mainImage)?.url,
+    type: "article",
+    publishedTime: article.publishedAt?.toISOString(),
+    modifiedTime: article.updatedAt.toISOString(),
+  });
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -52,8 +55,28 @@ export default async function ArticlePage({ params }: Props) {
     orderBy: { publishedAt: "desc" },
   });
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt ?? undefined,
+    image: article.mainImage?.url,
+    datePublished: article.publishedAt?.toISOString(),
+    dateModified: article.updatedAt.toISOString(),
+    author: article.author?.name ? { "@type": "Person", name: article.author.name } : undefined,
+    publisher: { "@type": "Organization", name: "19 Bonnes Tables Sarthoises" },
+    mainEntityOfPage: absoluteUrl(`/actualites/${article.slug}`),
+  };
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Accueil", path: "/" },
+    { name: "Actualités", path: "/actualites" },
+    { name: article.title, path: `/actualites/${article.slug}` },
+  ]);
+
   return (
     <article>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <ArticleCover
         url={article.mainImage?.url ?? null}
         alt={article.mainImage?.alt}

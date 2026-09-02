@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { prisma } from "@/lib/db/prisma";
 import { Reveal } from "@/components/public/reveal";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Partenaires" };
+export const metadata: Metadata = buildMetadata({
+  title: "Partenaires locaux",
+  description:
+    "Les partenaires locaux de l'association des 19 Bonnes Tables Sarthoises : producteurs et fournisseurs sarthois qui accompagnent nos restaurateurs au quotidien.",
+  path: "/partenaires",
+});
 
 export default async function PartenairesPage() {
   const partners = await prisma.partner.findMany({

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getPublishedRestaurantBySlug } from "@/lib/services/restaurant.service";
 import { getSiteSettings } from "@/lib/services/settings.service";
 import { ArrowLeft, ArrowRight, Clock, Facebook, Instagram, Mail, MapPin, Navigation as NavigationIcon, Phone } from "lucide-react";
+import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
 // Contenu piloté par le CMS : rendu dynamique à chaque requête (pas de
 // génération statique figée au build).
@@ -27,21 +28,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const restaurant = await getPublishedRestaurantBySlug(slug);
   if (restaurant) {
-    return {
+    return buildMetadata({
       title: restaurant.seoTitle || restaurant.name,
-      description: restaurant.seoDescription || restaurant.shortDescription || undefined,
-      openGraph: restaurant.ogImage || restaurant.mainImage
-        ? { images: [{ url: (restaurant.ogImage ?? restaurant.mainImage)!.url }] }
-        : undefined,
-    };
+      description: restaurant.seoDescription || restaurant.shortDescription,
+      path: `/${slug}`,
+      image: (restaurant.ogImage ?? restaurant.mainImage)?.url,
+    });
   }
 
-  const page = await prisma.page.findUnique({ where: { slug } });
+  const page = await prisma.page.findUnique({ where: { slug }, include: { mainImage: true, ogImage: true } });
   if (page && page.status === "PUBLISHED") {
-    return {
+    return buildMetadata({
       title: page.seoTitle || page.title,
-      description: page.seoDescription || page.excerpt || undefined,
-    };
+      description: page.seoDescription || page.excerpt,
+      path: `/${slug}`,
+      image: (page.ogImage ?? page.mainImage)?.url,
+    });
   }
 
   return {};
@@ -57,6 +59,27 @@ export default async function SlugPage({ params }: Props) {
       | { day: string; closed: boolean; slots: { start: string; end: string }[] }[]
       | null) ?? [];
 
+    const DAY_TO_SCHEMA: Record<string, string> = {
+      lundi: "Monday",
+      mardi: "Tuesday",
+      mercredi: "Wednesday",
+      jeudi: "Thursday",
+      vendredi: "Friday",
+      samedi: "Saturday",
+      dimanche: "Sunday",
+    };
+    const openingHoursSpecification = openingHours
+      .filter((d) => !d.closed && d.slots.length > 0)
+      .flatMap((d) =>
+        d.slots.map((s) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: DAY_TO_SCHEMA[d.day] ?? d.day,
+          opens: s.start,
+          closes: s.end,
+        }))
+      );
+    const priceRangeParts = [restaurant.priceLunch, restaurant.priceDinner].filter(Boolean);
+
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "Restaurant",
@@ -66,6 +89,8 @@ export default async function SlugPage({ params }: Props) {
       telephone: restaurant.phone ?? undefined,
       email: restaurant.email ?? undefined,
       url: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/${restaurant.slug}`,
+      sameAs: [restaurant.facebookUrl, restaurant.instagramUrl].filter(Boolean),
+      priceRange: priceRangeParts.length > 0 ? priceRangeParts.join(" · ") : undefined,
       address: restaurant.address
         ? {
             "@type": "PostalAddress",
@@ -75,7 +100,18 @@ export default async function SlugPage({ params }: Props) {
             addressCountry: "FR",
           }
         : undefined,
+      geo:
+        restaurant.latitude != null && restaurant.longitude != null
+          ? { "@type": "GeoCoordinates", latitude: restaurant.latitude, longitude: restaurant.longitude }
+          : undefined,
+      openingHoursSpecification: openingHoursSpecification.length > 0 ? openingHoursSpecification : undefined,
     };
+
+    const breadcrumb = breadcrumbJsonLd([
+      { name: "Accueil", path: "/" },
+      { name: "Nos restaurants", path: "/nos-restaurants" },
+      { name: restaurant.name, path: `/${restaurant.slug}` },
+    ]);
 
     const priceLine = [
       restaurant.priceLunch ? `Midi ${restaurant.priceLunch}` : null,
@@ -87,6 +123,7 @@ export default async function SlugPage({ params }: Props) {
     return (
       <article>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
         {/* Bandeau d'en-tête compact : l'essentiel (nom, ville) sans empiéter
             sur les informations pratiques qui suivent juste en dessous. */}

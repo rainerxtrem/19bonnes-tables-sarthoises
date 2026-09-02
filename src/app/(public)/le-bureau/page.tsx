@@ -3,9 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import { Reveal } from "@/components/public/reveal";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Le bureau" };
+export const metadata: Metadata = buildMetadata({
+  title: "Le bureau de l'association",
+  description:
+    "Découvrez le bureau de l'association des 19 Bonnes Tables Sarthoises : président, trésorier, secrétaire et les restaurateurs sarthois qui portent ces fonctions bénévolement.",
+  path: "/le-bureau",
+});
 
 export default async function BureauPage() {
   const members = await prisma.boardMember.findMany({

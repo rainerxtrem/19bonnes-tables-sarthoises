@@ -9,15 +9,22 @@ import { RestaurantsMapLoader } from "@/components/public/restaurants-map-loader
 import { ContactForm } from "@/components/public/contact-form";
 import { Reveal } from "@/components/public/reveal";
 import { ArrowRight, ChefHat, MapPin, UtensilsCrossed } from "lucide-react";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
-  return {
+  const [settings, homePage] = await Promise.all([
+    getSiteSettings(),
+    prisma.page.findUnique({ where: { slug: "accueil" }, include: { mainImage: true } }),
+  ]);
+  return buildMetadata({
     title: settings.seoDefaultTitle || settings.siteName,
-    description: settings.seoDefaultDescription || settings.siteDescription || undefined,
-  };
+    description: settings.seoDefaultDescription || settings.siteDescription,
+    path: "/",
+    image: homePage?.mainImage?.url ?? settings.ogDefaultImage?.url,
+    titleIsAbsolute: true,
+  });
 }
 
 export default async function HomePage() {
