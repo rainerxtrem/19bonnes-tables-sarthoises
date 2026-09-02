@@ -6,7 +6,8 @@ export const articleSchema = z.object({
     .string()
     .trim()
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug invalide (minuscules, chiffres, tirets)")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   excerpt: z.string().trim().max(300).optional().or(z.literal("")),
   content: z.string().trim().min(1, "Le contenu ne peut pas être vide"),
   mainImageId: z.string().cuid().optional().nullable(),
@@ -27,5 +28,8 @@ export const categorySchema = z.object({
     .string()
     .trim()
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug invalide")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
 });
+
+export type CategoryInput = z.infer<typeof categorySchema>;

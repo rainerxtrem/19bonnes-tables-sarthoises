@@ -19,7 +19,8 @@ export const restaurantSchema = z.object({
     .string()
     .trim()
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug invalide (minuscules, chiffres, tirets)")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   shortDescription: z.string().trim().max(300).optional().or(z.literal("")),
   description: z.string().trim().max(20000).optional().or(z.literal("")),
   address: z.string().trim().max(200).optional().or(z.literal("")),

@@ -10,6 +10,7 @@ const NAV_ITEMS: { href: string; label: string; superAdminOnly?: boolean }[] = [
   { href: "/admin/restaurants", label: "Restaurants" },
   { href: "/admin/pages", label: "Pages" },
   { href: "/admin/actualites", label: "Actualités" },
+  { href: "/admin/categories", label: "Catégories" },
   { href: "/admin/bureau", label: "Bureau" },
   { href: "/admin/galerie", label: "Galerie" },
   { href: "/admin/partenaires", label: "Partenaires" },

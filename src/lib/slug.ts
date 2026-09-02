@@ -9,7 +9,7 @@ export function slugifyText(input: string): string {
   return slugify(withoutApostrophes, { lower: true, strict: true, locale: "fr" });
 }
 
-type SlugModel = "restaurant" | "page" | "article" | "galleryAlbum";
+type SlugModel = "restaurant" | "page" | "article" | "galleryAlbum" | "category";
 
 /**
  * Garantit l'unicité d'un slug pour un modèle donné en ajoutant un suffixe
@@ -49,6 +49,11 @@ async function slugExists(model: SlugModel, slug: string, excludeId?: string): P
   if (model === "article") {
     const article = await prisma.article.findUnique({ where: { slug }, select: { id: true } });
     return Boolean(article && article.id !== excludeId);
+  }
+
+  if (model === "category") {
+    const category = await prisma.category.findUnique({ where: { slug }, select: { id: true } });
+    return Boolean(category && category.id !== excludeId);
   }
 
   const album = await prisma.galleryAlbum.findUnique({ where: { slug }, select: { id: true } });

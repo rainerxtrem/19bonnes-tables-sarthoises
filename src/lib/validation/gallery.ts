@@ -6,7 +6,8 @@ export const galleryAlbumSchema = z.object({
     .string()
     .trim()
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug invalide")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   description: z.string().trim().max(500).optional().or(z.literal("")),
   restaurantId: z.string().cuid().optional().nullable(),
   order: z.coerce.number().int().min(0).default(0),
