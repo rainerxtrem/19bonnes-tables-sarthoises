@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { sendMail } from "@/lib/mailer";
 import { absoluteUrl } from "@/lib/seo";
@@ -19,9 +20,13 @@ export async function subscribeToNewsletter(email: string, ipAddress?: string) {
         where: { id: existing.id },
         data: { unsubscribedAt: null, subscribedAt: new Date() },
       });
-      // Volontairement non attendu : l'envoi ne doit pas bloquer la réponse
-      // au formulaire (l'inscription est déjà enregistrée en base).
-      void sendWelcomeEmail(reactivated.email, reactivated.unsubscribeToken);
+      // Planifié via after() plutôt qu'attendu ou lancé "à la volée" : la
+      // réponse au formulaire part sans attendre l'envoi, mais contrairement
+      // à un simple appel non attendu (void ...), after() garantit que la
+      // promesse s'exécute jusqu'au bout même une fois la réponse HTTP
+      // envoyée — sans ça Next.js peut couper les requêtes fetch encore en
+      // cours dès que le cycle de la requête se termine.
+      after(() => sendWelcomeEmail(reactivated.email, reactivated.unsubscribeToken));
       return reactivated;
     }
     throw new AlreadySubscribedError();
@@ -30,7 +35,7 @@ export async function subscribeToNewsletter(email: string, ipAddress?: string) {
   const subscriber = await prisma.newsletterSubscriber.create({
     data: { email, ipAddress },
   });
-  void sendWelcomeEmail(subscriber.email, subscriber.unsubscribeToken);
+  after(() => sendWelcomeEmail(subscriber.email, subscriber.unsubscribeToken));
   return subscriber;
 }
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { contactFormSchema } from "@/lib/validation/contact";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -57,13 +58,18 @@ export async function submitContactForm(
 
   const notifyEmail = process.env.CONTACT_NOTIFICATION_EMAIL;
   if (notifyEmail) {
-    // Volontairement non attendu : l'envoi ne doit pas bloquer la réponse
-    // au formulaire (le message est déjà enregistré en base à ce stade).
-    sendMail({
-      to: notifyEmail,
-      subject: `Nouveau message de contact — ${message.fullName}`,
-      text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,
-    }).catch((error) => console.error("Envoi email contact échoué:", error));
+    // Planifié via after() : la réponse au formulaire part sans attendre
+    // l'envoi, mais contrairement à un simple appel non attendu, after()
+    // garantit que la promesse s'exécute jusqu'au bout même une fois la
+    // réponse HTTP envoyée (Next.js peut sinon couper les fetch encore en
+    // cours dès la fin du cycle de la requête).
+    after(() =>
+      sendMail({
+        to: notifyEmail,
+        subject: `Nouveau message de contact — ${message.fullName}`,
+        text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,
+      }).catch((error) => console.error("Envoi email contact échoué:", error))
+    );
   }
 
   return { success: true };
