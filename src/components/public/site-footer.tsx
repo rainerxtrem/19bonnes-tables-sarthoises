@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Rss } from "lucide-react";
+import { NewsletterForm } from "@/components/public/newsletter-form";
 
 export function SiteFooter({
   siteName,
@@ -77,6 +78,18 @@ export function SiteFooter({
               Association d&apos;hommes et de femmes de métiers, réunis autour d&apos;une même exigence.
             </p>
           </div>
+        </div>
+      </div>
+
+      <div className="border-t border-cream-50/10">
+        <div className="container flex flex-col items-start justify-between gap-6 py-12 lg:flex-row lg:items-center">
+          <div>
+            <p className="eyebrow text-cream-100/70">Restez informés</p>
+            <p className="mt-2 max-w-xs text-sm text-cream-100/60">
+              Recevez nos actualités : recettes de terroir, événements et vie de l&apos;association.
+            </p>
+          </div>
+          <NewsletterForm />
         </div>
       </div>
 

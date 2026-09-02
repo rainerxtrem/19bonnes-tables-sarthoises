@@ -35,7 +35,7 @@ async function main() {
   // ---------------------------------------------------------------------
   // Compte super-administrateur initial
   // ---------------------------------------------------------------------
-  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@19bonnestablessarthoises.fr";
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@19bonnes-tables-sarthoises.fr";
   const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "changeme-au-premier-lancement";
 
   await prisma.user.upsert({
@@ -61,7 +61,7 @@ async function main() {
       siteName: "19 Bonnes Tables Sarthoises",
       siteDescription:
         "Association d'hommes et de femmes de métiers. Le savoir-faire pour mieux vous servir.",
-      contactEmail: "contact@19bonnestablessarthoises.fr",
+      contactEmail: "contact@19bonnes-tables-sarthoises.fr",
       // TODO audit : téléphone et adresse de l'association absents de l'ancien site.
       seoDefaultTitle: "19 Bonnes Tables Sarthoises",
       seoDefaultDescription:

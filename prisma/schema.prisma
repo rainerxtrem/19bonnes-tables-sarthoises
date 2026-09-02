@@ -366,6 +366,23 @@ model ContactMessage {
 }
 
 // ---------------------------------------------------------------------------
+// Newsletter
+// ---------------------------------------------------------------------------
+
+model NewsletterSubscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  // Permet un lien de désinscription en un clic, sans authentification —
+  // pratique standard pour rester conforme (droit de retrait facile).
+  unsubscribeToken String    @unique @default(cuid())
+  subscribedAt     DateTime  @default(now())
+  unsubscribedAt   DateTime?
+  ipAddress        String?
+
+  @@map("newsletter_subscribers")
+}
+
+// ---------------------------------------------------------------------------
 // Paramètres du site (ligne unique)
 // ---------------------------------------------------------------------------
 

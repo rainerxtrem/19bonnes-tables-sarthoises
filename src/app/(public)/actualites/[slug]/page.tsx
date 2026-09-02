@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArticleCover } from "@/components/public/article-cover";
+import { ShareButton } from "@/components/public/share-button";
 import { buildMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -87,13 +88,16 @@ export default async function ArticlePage({ params }: Props) {
 
       <div className="container">
         <div className="mx-auto max-w-3xl">
-          <Link
-            href="/actualites"
-            className="link-sweep mb-10 mt-8 inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-ink-500"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-            Toutes les actualités
-          </Link>
+          <div className="mb-10 mt-8 flex items-center justify-between gap-4">
+            <Link
+              href="/actualites"
+              className="link-sweep inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-ink-500"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+              Toutes les actualités
+            </Link>
+            <ShareButton title={article.title} url={absoluteUrl(`/actualites/${article.slug}`)} />
+          </div>
 
           {article.publishedAt ? (
             <p className="eyebrow justify-center">

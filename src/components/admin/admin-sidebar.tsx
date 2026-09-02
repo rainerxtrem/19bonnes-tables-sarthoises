@@ -15,6 +15,7 @@ const NAV_ITEMS: { href: string; label: string; superAdminOnly?: boolean }[] = [
   { href: "/admin/partenaires", label: "Partenaires" },
   { href: "/admin/bon-cadeaux", label: "Bons cadeaux" },
   { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/newsletter", label: "Newsletter" },
   { href: "/admin/navigation", label: "Navigation" },
   { href: "/admin/redirections", label: "Redirections", superAdminOnly: true },
   { href: "/admin/settings", label: "Paramètres", superAdminOnly: true },
