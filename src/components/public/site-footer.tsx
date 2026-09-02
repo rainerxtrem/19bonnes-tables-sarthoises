@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Rss } from "lucide-react";
 
 export function SiteFooter({
   siteName,
@@ -30,6 +31,10 @@ export function SiteFooter({
             <Link href="/actualites" className="w-fit hover:text-gold-300">
               Actualités
             </Link>
+            <a href="/feed.xml" className="flex w-fit items-center gap-1.5 hover:text-gold-300">
+              <Rss className="h-3.5 w-3.5" aria-hidden />
+              Flux RSS
+            </a>
             <Link href="/galerie" className="w-fit hover:text-gold-300">
               Galerie
             </Link>

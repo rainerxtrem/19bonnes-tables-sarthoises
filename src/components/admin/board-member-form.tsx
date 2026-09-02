@@ -87,7 +87,12 @@ export function BoardMemberForm({
             ))}
           </Select>
         </FormField>
-        <FormField label="Description" htmlFor="bio" error={errors.bio?.message}>
+        <FormField
+          label="Description / mot"
+          htmlFor="bio"
+          hint="Pour le président, ce texte est mis en avant sur la page Bureau sous le titre « Mot du président »."
+          error={errors.bio?.message}
+        >
           <Textarea id="bio" rows={4} {...register("bio")} />
         </FormField>
       </section>

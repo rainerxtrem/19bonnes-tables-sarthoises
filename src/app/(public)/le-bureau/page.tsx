@@ -20,6 +20,10 @@ export default async function BureauPage() {
     orderBy: { order: "asc" },
   });
 
+  // "Président" mais pas "Vice-président" — on prend le premier qui
+  // correspond, dans l'ordre d'affichage déjà trié.
+  const president = members.find((m) => /^président/i.test(m.role.trim()));
+
   return (
     <div>
       <section className="border-b border-ink-900/10 bg-cream-100 py-20 sm:py-28">
@@ -40,6 +44,40 @@ export default async function BureauPage() {
           </Reveal>
         </div>
       </section>
+
+      {president?.bio ? (
+        <section className="border-b border-ink-900/10 bg-cream-50 py-20">
+          <div className="container">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:text-left">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-ink-100 shadow-card">
+                {president.photo ? (
+                  <Image
+                    src={president.photo.url}
+                    alt={president.photo.alt ?? `${president.firstName} ${president.lastName}`}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center font-display text-2xl text-ink-300">
+                    {president.firstName.charAt(0)}
+                    {president.lastName.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="eyebrow justify-center sm:justify-start">Mot du président</p>
+                <p className="mt-4 font-display text-xl italic leading-relaxed text-ink-800">
+                  &laquo;&nbsp;{president.bio}&nbsp;&raquo;
+                </p>
+                <p className="mt-4 text-sm font-medium text-ink-900">
+                  {president.firstName} {president.lastName}
+                  <span className="font-normal text-ink-500"> — {president.role}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="py-16 sm:py-20">
         <div className="container">

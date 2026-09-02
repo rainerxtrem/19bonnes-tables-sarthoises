@@ -42,7 +42,11 @@ export function buildMetadata({
   return {
     title: titleIsAbsolute ? { absolute: title } : title,
     description: desc,
-    alternates: { canonical: url },
+    // `alternates` n'est pas fusionné en profondeur avec celui du layout
+    // parent (le plus spécifique remplace tout l'objet) — on inclut donc le
+    // flux RSS ici pour qu'il reste découvrable sur chaque page, pas
+    // seulement celles qui ne définissent pas leur propre canonical.
+    alternates: { canonical: url, types: { "application/rss+xml": absoluteUrl("/feed.xml") } },
     openGraph: {
       title,
       description: desc,
