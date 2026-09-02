@@ -122,6 +122,12 @@ model Restaurant {
   address          String?
   postalCode       String?
   city             String?
+  // Géocodées automatiquement à partir de l'adresse (voir script de
+  // migration) — utilisées par la carte interactive de la page d'accueil.
+  // Nullable : un restaurant sans adresse précise n'apparaît simplement pas
+  // sur la carte.
+  latitude         Float?
+  longitude        Float?
   phone            String?
   email            String?
   website          String?

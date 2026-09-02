@@ -26,6 +26,8 @@ function toFormDefaults(restaurant?: RestaurantWithRelations | null): Restaurant
     address: restaurant?.address ?? "",
     postalCode: restaurant?.postalCode ?? "",
     city: restaurant?.city ?? "",
+    latitude: restaurant?.latitude ?? null,
+    longitude: restaurant?.longitude ?? null,
     phone: restaurant?.phone ?? "",
     email: restaurant?.email ?? "",
     website: restaurant?.website ?? "",
@@ -149,6 +151,17 @@ export function RestaurantForm({
             </FormField>
             <FormField label="Ville" htmlFor="city" error={errors.city?.message}>
               <Input id="city" {...register("city")} />
+            </FormField>
+            <FormField
+              label="Latitude"
+              htmlFor="latitude"
+              hint="Position sur la carte interactive — pré-remplie automatiquement, à corriger seulement si la punaise est mal placée."
+              error={errors.latitude?.message}
+            >
+              <Input id="latitude" type="number" step="any" {...register("latitude")} placeholder="ex. 47.9958" />
+            </FormField>
+            <FormField label="Longitude" htmlFor="longitude" error={errors.longitude?.message}>
+              <Input id="longitude" type="number" step="any" {...register("longitude")} placeholder="ex. 0.1988" />
             </FormField>
             <FormField label="Téléphone" htmlFor="phone" error={errors.phone?.message}>
               <Input id="phone" {...register("phone")} />

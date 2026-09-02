@@ -30,6 +30,11 @@ export const restaurantSchema = z.object({
     .optional()
     .or(z.literal("")),
   city: z.string().trim().max(120).optional().or(z.literal("")),
+  // Position de la punaise sur la carte interactive. Pré-remplie
+  // automatiquement lors de la migration, modifiable ici si le
+  // géocodage automatique s'est trompé (ex. plusieurs rues du même nom).
+  latitude: z.coerce.number().min(-90).max(90).optional().nullable(),
+  longitude: z.coerce.number().min(-180).max(180).optional().nullable(),
   phone: z
     .string()
     .trim()

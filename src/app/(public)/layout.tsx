@@ -2,6 +2,7 @@ import { getSiteSettings } from "@/lib/services/settings.service";
 import { getPublicNavigationTree } from "@/lib/services/navigation.service";
 import { SiteHeader } from "@/components/public/site-header";
 import { SiteFooter } from "@/components/public/site-footer";
+import { CookieConsentBanner } from "@/components/public/cookie-consent-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function PublicLayout({ children }: { children: React.React
         contactEmail={settings.contactEmail}
         footerText={settings.footerText}
       />
+      <CookieConsentBanner />
     </div>
   );
 }

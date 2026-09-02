@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { listPublishedRestaurants } from "@/lib/services/restaurant.service";
 import { getSiteSettings } from "@/lib/services/settings.service";
 import { RestaurantCard } from "@/components/public/restaurant-card";
+import { RestaurantsMapLoader } from "@/components/public/restaurants-map-loader";
 import { ContactForm } from "@/components/public/contact-form";
 import { Reveal } from "@/components/public/reveal";
 import { ArrowRight, ChefHat, MapPin, UtensilsCrossed } from "lucide-react";
@@ -28,6 +29,9 @@ export default async function HomePage() {
   ]);
 
   const towns = Array.from(new Set(restaurants.map((r) => r.city).filter((c): c is string => Boolean(c))));
+  const mapRestaurants = restaurants
+    .filter((r): r is typeof r & { latitude: number; longitude: number } => r.latitude != null && r.longitude != null)
+    .map((r) => ({ id: r.id, slug: r.slug, name: r.name, city: r.city, latitude: r.latitude, longitude: r.longitude }));
 
   return (
     <div>
@@ -190,7 +194,16 @@ export default async function HomePage() {
                 Une association qui fait vivre la Sarthe, une table à la fois
               </h2>
             </Reveal>
-            <Reveal delay={160}>
+
+            {mapRestaurants.length > 0 ? (
+              <Reveal delay={140}>
+                <div className="mx-auto mt-10 h-[420px] max-w-4xl overflow-hidden rounded-md shadow-elevated sm:h-[480px]">
+                  <RestaurantsMapLoader restaurants={mapRestaurants} />
+                </div>
+              </Reveal>
+            ) : null}
+
+            <Reveal delay={200}>
               <div className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-3">
                 {towns.map((town) => (
                   <span
