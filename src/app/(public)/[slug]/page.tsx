@@ -5,7 +5,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import { getPublishedRestaurantBySlug } from "@/lib/services/restaurant.service";
 import { getSiteSettings } from "@/lib/services/settings.service";
-import { ArrowLeft, Clock, Facebook, Instagram, Mail, MapPin, Navigation as NavigationIcon, Phone } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, Facebook, Instagram, Mail, MapPin, Navigation as NavigationIcon, Phone } from "lucide-react";
 
 // Contenu piloté par le CMS : rendu dynamique à chaque requête (pas de
 // génération statique figée au build).
@@ -150,7 +150,7 @@ export default async function SlugPage({ params }: Props) {
                 <p className="eyebrow">Galerie</p>
                 <h2 className="mt-3 font-display text-2xl text-ink-900">En images</h2>
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {restaurant.images.map((image) => (
+                  {restaurant.images.slice(0, 6).map((image) => (
                     <div key={image.id} className="relative aspect-square overflow-hidden rounded-sm bg-ink-100">
                       <Image
                         src={image.media.url}
@@ -161,6 +161,15 @@ export default async function SlugPage({ params }: Props) {
                     </div>
                   ))}
                 </div>
+                {restaurant.images.length > 6 && restaurant.galleryAlbum ? (
+                  <Link
+                    href={`/galerie/${restaurant.galleryAlbum.slug}`}
+                    className="link-sweep mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-wine-700"
+                  >
+                    Voir plus de photos
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                ) : null}
               </div>
             ) : null}
           </div>

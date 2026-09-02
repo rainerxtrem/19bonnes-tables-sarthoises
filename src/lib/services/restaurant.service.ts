@@ -15,6 +15,33 @@ const restaurantWithRelations = {
 
 export type RestaurantWithRelations = Prisma.RestaurantGetPayload<typeof restaurantWithRelations>;
 
+/**
+ * Garde la galerie publique (/galerie/[slug]) synchronisée avec les photos
+ * choisies dans "Galerie du restaurant" sur la fiche (admin ou
+ * /mon-restaurant) : une seule liste de photos à gérer, au même endroit,
+ * plutôt que deux galeries indépendantes qui finissaient par diverger.
+ */
+async function syncGalleryAlbum(
+  tx: Prisma.TransactionClient,
+  restaurantId: string,
+  restaurantSlug: string,
+  restaurantName: string,
+  mediaIds: string[]
+) {
+  const album = await tx.galleryAlbum.upsert({
+    where: { restaurantId },
+    update: {},
+    create: { slug: restaurantSlug, title: restaurantName, restaurantId },
+  });
+
+  await tx.galleryItem.deleteMany({ where: { albumId: album.id } });
+  if (mediaIds.length) {
+    await tx.galleryItem.createMany({
+      data: mediaIds.map((mediaId, order) => ({ albumId: album.id, mediaId, order })),
+    });
+  }
+}
+
 export async function listRestaurantsAdmin() {
   return prisma.restaurant.findMany({
     include: { mainImage: true },
@@ -51,35 +78,38 @@ export async function createRestaurant(input: RestaurantInput) {
   const slug = await ensureUniqueSlug("restaurant", input.slug || input.name);
   const { galleryMediaIds, ...data } = input;
 
-  return prisma.restaurant.create({
-    data: {
-      ...data,
-      slug,
-      shortDescription: emptyToNull(data.shortDescription),
-      description: emptyToNull(data.description),
-      address: emptyToNull(data.address),
-      postalCode: emptyToNull(data.postalCode),
-      city: emptyToNull(data.city),
-      phone: emptyToNull(data.phone),
-      email: emptyToNull(data.email),
-      website: emptyToNull(data.website),
-      googleMapsUrl: emptyToNull(data.googleMapsUrl),
-      facebookUrl: emptyToNull(data.facebookUrl),
-      instagramUrl: emptyToNull(data.instagramUrl),
-      priceLunch: emptyToNull(data.priceLunch),
-      priceDinner: emptyToNull(data.priceDinner),
-      additionalInfo: emptyToNull(data.additionalInfo),
-      seoTitle: emptyToNull(data.seoTitle),
-      seoDescription: emptyToNull(data.seoDescription),
-      openingHours: data.openingHours ? (data.openingHours as unknown as Prisma.InputJsonValue) : undefined,
-      publishedAt: data.status === "PUBLISHED" ? new Date() : null,
-      images: galleryMediaIds?.length
-        ? {
-            create: galleryMediaIds.map((mediaId, order) => ({ mediaId, order })),
-          }
-        : undefined,
-    },
-    ...restaurantWithRelations,
+  return prisma.$transaction(async (tx) => {
+    const restaurant = await tx.restaurant.create({
+      data: {
+        ...data,
+        slug,
+        shortDescription: emptyToNull(data.shortDescription),
+        description: emptyToNull(data.description),
+        address: emptyToNull(data.address),
+        postalCode: emptyToNull(data.postalCode),
+        city: emptyToNull(data.city),
+        phone: emptyToNull(data.phone),
+        email: emptyToNull(data.email),
+        website: emptyToNull(data.website),
+        googleMapsUrl: emptyToNull(data.googleMapsUrl),
+        facebookUrl: emptyToNull(data.facebookUrl),
+        instagramUrl: emptyToNull(data.instagramUrl),
+        priceLunch: emptyToNull(data.priceLunch),
+        priceDinner: emptyToNull(data.priceDinner),
+        additionalInfo: emptyToNull(data.additionalInfo),
+        openingHours: data.openingHours ? (data.openingHours as unknown as Prisma.InputJsonValue) : undefined,
+        publishedAt: data.status === "PUBLISHED" ? new Date() : null,
+        images: galleryMediaIds?.length
+          ? {
+              create: galleryMediaIds.map((mediaId, order) => ({ mediaId, order })),
+            }
+          : undefined,
+      },
+    });
+
+    await syncGalleryAlbum(tx, restaurant.id, slug, restaurant.name, galleryMediaIds ?? []);
+
+    return tx.restaurant.findUniqueOrThrow({ where: { id: restaurant.id }, ...restaurantWithRelations });
   });
 }
 
@@ -100,6 +130,7 @@ export async function updateRestaurant(id: string, input: RestaurantInput) {
           data: galleryMediaIds.map((mediaId, order) => ({ restaurantId: id, mediaId, order })),
         });
       }
+      await syncGalleryAlbum(tx, id, slug, data.name ?? existing.name, galleryMediaIds);
     }
 
     return tx.restaurant.update({
@@ -121,8 +152,6 @@ export async function updateRestaurant(id: string, input: RestaurantInput) {
         priceLunch: emptyToNull(data.priceLunch),
         priceDinner: emptyToNull(data.priceDinner),
         additionalInfo: emptyToNull(data.additionalInfo),
-        seoTitle: emptyToNull(data.seoTitle),
-        seoDescription: emptyToNull(data.seoDescription),
         openingHours: data.openingHours ? (data.openingHours as unknown as Prisma.InputJsonValue) : undefined,
         publishedAt:
           data.status === "PUBLISHED" && existing.status !== "PUBLISHED"
@@ -159,40 +188,48 @@ export async function duplicateRestaurant(id: string) {
 
   const slug = await ensureUniqueSlug("restaurant", `${original.name}-copie`);
   const maxOrder = await prisma.restaurant.aggregate({ _max: { order: true } });
+  const mediaIds = original.images.map((image) => image.mediaId);
 
-  return prisma.restaurant.create({
-    data: {
-      name: `${original.name} (copie)`,
-      slug,
-      shortDescription: original.shortDescription,
-      description: original.description,
-      address: original.address,
-      postalCode: original.postalCode,
-      city: original.city,
-      phone: original.phone,
-      email: original.email,
-      website: original.website,
-      googleMapsUrl: original.googleMapsUrl,
-      facebookUrl: original.facebookUrl,
-      instagramUrl: original.instagramUrl,
-      openingHours:
-        original.openingHours === null ? undefined : (original.openingHours as unknown as Prisma.InputJsonValue),
-      priceLunch: original.priceLunch,
-      priceDinner: original.priceDinner,
-      additionalInfo: original.additionalInfo,
-      mainImageId: original.mainImageId,
-      ogImageId: original.ogImageId,
-      isFeatured: original.isFeatured,
-      seoTitle: original.seoTitle,
-      seoDescription: original.seoDescription,
-      status: "DRAFT",
-      publishedAt: null,
-      order: (maxOrder._max.order ?? 0) + 1,
-      images: {
-        create: original.images.map((image) => ({ mediaId: image.mediaId, order: image.order })),
+  return prisma.$transaction(async (tx) => {
+    const restaurant = await tx.restaurant.create({
+      data: {
+        name: `${original.name} (copie)`,
+        slug,
+        shortDescription: original.shortDescription,
+        description: original.description,
+        address: original.address,
+        postalCode: original.postalCode,
+        city: original.city,
+        latitude: original.latitude,
+        longitude: original.longitude,
+        phone: original.phone,
+        email: original.email,
+        website: original.website,
+        googleMapsUrl: original.googleMapsUrl,
+        facebookUrl: original.facebookUrl,
+        instagramUrl: original.instagramUrl,
+        openingHours:
+          original.openingHours === null ? undefined : (original.openingHours as unknown as Prisma.InputJsonValue),
+        priceLunch: original.priceLunch,
+        priceDinner: original.priceDinner,
+        additionalInfo: original.additionalInfo,
+        mainImageId: original.mainImageId,
+        ogImageId: original.ogImageId,
+        isFeatured: original.isFeatured,
+        seoTitle: original.seoTitle,
+        seoDescription: original.seoDescription,
+        status: "DRAFT",
+        publishedAt: null,
+        order: (maxOrder._max.order ?? 0) + 1,
+        images: {
+          create: original.images.map((image) => ({ mediaId: image.mediaId, order: image.order })),
+        },
       },
-    },
-    ...restaurantWithRelations,
+    });
+
+    await syncGalleryAlbum(tx, restaurant.id, slug, restaurant.name, mediaIds);
+
+    return tx.restaurant.findUniqueOrThrow({ where: { id: restaurant.id }, ...restaurantWithRelations });
   });
 }
 
