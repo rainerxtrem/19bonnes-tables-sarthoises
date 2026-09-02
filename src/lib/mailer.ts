@@ -1,40 +1,36 @@
-import nodemailer from "nodemailer";
-
-let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-  if (!process.env.SMTP_HOST) return null;
-
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-      : undefined,
-    // Sans ces bornes, une connexion SMTP qui traîne peut rester ouverte
-    // indéfiniment et bloquer l'action serveur appelante (le formulaire
-    // reste alors grisé sur "Envoi..." sans jamais se débloquer).
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 10_000,
-  });
-  return transporter;
-}
+// Envoi d'emails via l'API HTTP de Resend (https://resend.com), et non via
+// SMTP direct : Railway (comme la plupart des hébergeurs PaaS) bloque le
+// trafic sortant sur les ports SMTP standards (25/465/587) pour lutter
+// contre le spam, ce qui rendait tout envoi impossible depuis l'app
+// (timeouts de connexion systématiques, y compris vers des hôtes tiers
+// n'ayant rien à voir avec IONOS). L'API Resend passe en HTTPS (port 443),
+// jamais bloqué.
+const RESEND_API_URL = "https://api.resend.com/emails";
 
 export async function sendMail(params: { to: string; subject: string; text: string; html?: string }) {
-  const client = getTransporter();
-  if (!client) {
-    console.warn("SMTP non configuré — email non envoyé:", params.subject);
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY non configuré — email non envoyé:", params.subject);
     return;
   }
 
-  await client.sendMail({
-    from: process.env.SMTP_FROM || "no-reply@localhost",
-    to: params.to,
-    subject: params.subject,
-    text: params.text,
-    html: params.html,
+  const response = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: process.env.MAIL_FROM || "no-reply@localhost",
+      to: params.to,
+      subject: params.subject,
+      text: params.text,
+      html: params.html,
+    }),
   });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`Échec envoi email via Resend (${response.status}): ${body}`);
+  }
 }
