@@ -67,6 +67,7 @@ model User {
   uploadedMedia       Media[]
   auditLogs           AuditLog[]
   newsletterCampaigns NewsletterCampaign[]
+  redeemedGiftVouchers GiftVoucher[]
 
   @@map("users")
 }
@@ -156,9 +157,59 @@ model Restaurant {
   boardMembers BoardMember[]
   galleryAlbum GalleryAlbum?
   users        User[]
+  redeemedGiftVouchers GiftVoucher[]
 
   @@index([status, order])
   @@map("restaurants")
+}
+
+// ---------------------------------------------------------------------------
+// Bons cadeaux
+// ---------------------------------------------------------------------------
+
+enum GiftVoucherStatus {
+  // En attente du paiement Stripe (session créée mais non confirmée).
+  PENDING_PAYMENT
+  // Payé, valide, utilisable dans n'importe lequel des restaurants membres.
+  ACTIVE
+  // Utilisé intégralement (pas de solde partiel — voir gift-voucher.service.ts).
+  REDEEMED
+  EXPIRED
+  // Paiement expiré/abandonné côté Stripe (session non complétée à temps).
+  CANCELLED
+}
+
+model GiftVoucher {
+  id            String            @id @default(cuid())
+  // Code lisible communiqué au client (ex. "19BT-XXXX-XXXX"), aussi encodé
+  // dans le QR code envoyé par email.
+  code          String            @unique
+  amountCents   Int
+  status        GiftVoucherStatus @default(PENDING_PAYMENT)
+
+  buyerName      String
+  buyerEmail     String
+  recipientName  String?
+  recipientEmail String?
+  message        String?          @db.Text
+
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+
+  purchasedAt DateTime?
+  expiresAt   DateTime?
+
+  redeemedAt             DateTime?
+  redeemedByUserId       String?
+  redeemedByUser         User?       @relation(fields: [redeemedByUserId], references: [id], onDelete: SetNull)
+  redeemedAtRestaurantId String?
+  redeemedAtRestaurant   Restaurant? @relation(fields: [redeemedAtRestaurantId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("gift_vouchers")
 }
 
 model RestaurantImage {

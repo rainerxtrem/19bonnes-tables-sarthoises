@@ -65,6 +65,19 @@ export async function requireRestaurantAccess(restaurantId: string) {
   throw new ForbiddenError();
 }
 
+/**
+ * Bons cadeaux : un bon est valable dans n'importe lequel des restaurants
+ * membres, donc tout compte RESTAURATEUR (peu importe son propre
+ * restaurant) peut consulter/valider n'importe quel bon depuis son espace.
+ */
+export async function requireRestaurateurSession() {
+  const session = await requireSession();
+  if (session.user.role === "RESTAURATEUR" && session.user.restaurantId) {
+    return session;
+  }
+  throw new ForbiddenError();
+}
+
 /** Médiathèque : accessible aux gestionnaires de contenu ET aux restaurateurs
  * (ils doivent pouvoir uploader/choisir des photos pour leur propre fiche). */
 export async function requireMediaAccess() {
