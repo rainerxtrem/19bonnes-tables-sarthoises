@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
 import { SimpleAdminList } from "@/components/admin/simple-admin-list";
 
@@ -13,8 +14,12 @@ export default async function AdminBureauPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Bureau de l&apos;association</h1>
-        <Link href="/admin/bureau/new" className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark">
+        <h1 className="font-display text-2xl text-ink-900">Bureau de l&apos;association</h1>
+        <Link
+          href="/admin/bureau/new"
+          className="inline-flex items-center gap-2 rounded-sm bg-wine-700 px-4 py-2 text-sm font-medium text-cream-50 transition-colors hover:bg-wine-800"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
           Nouveau membre
         </Link>
       </div>
@@ -23,7 +28,7 @@ export default async function AdminBureauPage() {
         rows={members.map((m) => ({
           id: m.id,
           cells: [
-            <span key="name" className="font-medium text-gray-900">{m.firstName} {m.lastName}</span>,
+            <span key="name" className="font-medium text-ink-900">{m.firstName} {m.lastName}</span>,
             <span key="role">{m.role}</span>,
             <span key="restaurant">{m.restaurant?.name ?? "—"}</span>,
             <span key="active">{m.isActive ? "Oui" : "Non"}</span>,

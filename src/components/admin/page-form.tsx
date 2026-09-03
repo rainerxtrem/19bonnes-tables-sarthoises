@@ -73,7 +73,7 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
           <FormField label="Titre" htmlFor="title" error={errors.title?.message}>
             <Input id="title" {...register("title")} />
           </FormField>
@@ -97,8 +97,8 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Référencement (SEO)</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Référencement (SEO)</h2>
           <FormField label="Titre SEO" htmlFor="seoTitle" error={errors.seoTitle?.message}>
             <Input id="seoTitle" {...register("seoTitle")} />
           </FormField>
@@ -109,7 +109,7 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
       </div>
 
       <div className="space-y-6">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
           <FormField label="Statut" htmlFor="status" error={errors.status?.message}>
             <Select id="status" {...register("status")}>
               <option value="DRAFT">Brouillon</option>
@@ -123,9 +123,9 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
           {serverError ? <p className="text-sm text-red-600">{serverError}</p> : null}
         </section>
 
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Photo principale</h2>
-          <p className="text-xs text-gray-500">
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Photo principale</h2>
+          <p className="text-xs text-ink-500">
             Pour la page d&apos;accueil, c&apos;est l&apos;image de fond du grand bandeau (hero).
           </p>
           {mainImagePreview ? (
@@ -133,7 +133,7 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
               <Image src={mainImagePreview.url} alt={mainImagePreview.alt ?? ""} fill className="object-cover" />
             </div>
           ) : (
-            <div className="flex aspect-video items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+            <div className="flex aspect-video items-center justify-center rounded-md bg-cream-100 text-xs text-ink-400">
               Aucune image
             </div>
           )}
@@ -166,9 +166,9 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
           />
         </section>
 
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Image de partage (Open Graph)</h2>
-          <p className="text-xs text-gray-500">
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Image de partage (Open Graph)</h2>
+          <p className="text-xs text-ink-500">
             Utilisée par défaut à la place de la photo principale lors du partage sur les réseaux sociaux.
           </p>
           {ogImagePreview ? (
@@ -176,7 +176,7 @@ export function PageForm({ page }: { page?: PageWithRelations | null }) {
               <Image src={ogImagePreview.url} alt={ogImagePreview.alt ?? ""} fill className="object-cover" />
             </div>
           ) : (
-            <div className="flex aspect-video items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+            <div className="flex aspect-video items-center justify-center rounded-md bg-cream-100 text-xs text-ink-400">
               Aucune image
             </div>
           )}

@@ -16,10 +16,13 @@ export default async function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-cream px-4">
-      <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-md">
-        <h1 className="mb-1 text-lg font-semibold text-gray-900">Administration</h1>
-        <p className="mb-6 text-sm text-gray-500">19 Bonnes Tables Sarthoises</p>
+    <div className="flex min-h-screen items-center justify-center bg-ink-950 px-4">
+      <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-elevated">
+        <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-sm bg-ink-950 font-display text-lg text-gold-400">
+          19
+        </span>
+        <h1 className="mt-4 text-center font-display text-xl text-ink-900">Administration</h1>
+        <p className="mb-6 text-center text-sm text-ink-500">19 Bonnes Tables Sarthoises</p>
         <LoginForm />
       </div>
     </div>

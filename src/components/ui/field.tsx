@@ -59,7 +59,7 @@ export function FormField({
     <div>
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {hint ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-ink-500">{hint}</p> : null}
       <FieldError message={error} />
     </div>
   );

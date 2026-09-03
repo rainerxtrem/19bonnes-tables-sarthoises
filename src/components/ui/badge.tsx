@@ -9,7 +9,7 @@ const STATUS_LABELS: Record<PublishStatus, string> = {
 };
 
 const STATUS_CLASSES: Record<PublishStatus, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
+  DRAFT: "bg-cream-100 text-ink-700",
   SCHEDULED: "bg-amber-100 text-amber-800",
   PUBLISHED: "bg-green-100 text-green-800",
   ARCHIVED: "bg-red-100 text-red-700",

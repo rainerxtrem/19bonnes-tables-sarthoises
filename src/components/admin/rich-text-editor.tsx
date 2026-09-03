@@ -36,8 +36,8 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100",
-        active && "bg-brand-cream text-brand-dark"
+        "rounded px-2 py-1 text-xs font-medium text-ink-600 hover:bg-cream-100",
+        active && "bg-wine-50 text-wine-700"
       )}
     >
       {label}
@@ -75,7 +75,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-1 border-b border-gray-200 bg-gray-50 p-2">
+    <div className="flex flex-wrap gap-1 border-b border-ink-100 bg-cream-50 p-2">
       <ToolbarButton label="H1" active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
       <ToolbarButton label="H2" active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
       <ToolbarButton label="H3" active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
@@ -135,7 +135,7 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="rounded-md border border-gray-300 bg-white shadow-sm">
+    <div className="rounded-md border border-ink-200 bg-white shadow-sm">
       <Toolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>

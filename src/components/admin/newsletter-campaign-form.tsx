@@ -78,7 +78,7 @@ export function NewsletterCampaignForm({
   return (
     <form
       onSubmit={handleSubmit(() => setConfirming(true))}
-      className="space-y-4 rounded-lg border border-gray-200 bg-white p-5"
+      className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm"
     >
       <FormField label="Associer un article publié (optionnel)" htmlFor="articleId">
         <Select id="articleId" onChange={(e) => onPickArticle(e.target.value)} defaultValue="">
@@ -104,7 +104,7 @@ export function NewsletterCampaignForm({
         <Textarea id="introText" rows={8} {...register("introText")} />
       </FormField>
 
-      <div className="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 text-sm text-gray-600">
+      <div className="flex items-center justify-between rounded-md bg-cream-50 px-4 py-3 text-sm text-ink-600">
         <span>
           Cet envoi touchera <strong>{subscriberCount}</strong> abonné{subscriberCount > 1 ? "s" : ""} actif
           {subscriberCount > 1 ? "s" : ""}.

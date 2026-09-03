@@ -63,7 +63,7 @@ export function NavigationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
       <FormField label="Libellé" htmlFor="label" error={errors.label?.message}>
         <Input id="label" {...register("label")} />
       </FormField>
@@ -111,11 +111,11 @@ export function NavigationForm({
       </FormField>
 
       <div className="flex gap-6">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink-700">
           <input type="checkbox" {...register("isActive")} />
           Actif
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink-700">
           <input type="checkbox" {...register("openInNewTab")} />
           Ouvrir dans un nouvel onglet
         </label>

@@ -71,7 +71,7 @@ export function ArticleForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
           <FormField label="Titre" htmlFor="title" error={errors.title?.message}>
             <Input id="title" {...register("title")} />
           </FormField>
@@ -90,8 +90,8 @@ export function ArticleForm({
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Référencement (SEO)</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Référencement (SEO)</h2>
           <FormField label="Titre SEO" htmlFor="seoTitle" error={errors.seoTitle?.message}>
             <Input id="seoTitle" {...register("seoTitle")} />
           </FormField>
@@ -102,7 +102,7 @@ export function ArticleForm({
       </div>
 
       <div className="space-y-6">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
           <FormField label="Statut" htmlFor="status" error={errors.status?.message}>
             <Select id="status" {...register("status")}>
               <option value="DRAFT">Brouillon</option>
@@ -146,8 +146,8 @@ export function ArticleForm({
           {serverError ? <p className="text-sm text-red-600">{serverError}</p> : null}
         </section>
 
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Image principale</h2>
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Image principale</h2>
           {mainImage ? (
             <div className="relative aspect-video overflow-hidden rounded-md">
               <Image src={mainImage.url} alt={mainImage.alt ?? ""} fill className="object-cover" />

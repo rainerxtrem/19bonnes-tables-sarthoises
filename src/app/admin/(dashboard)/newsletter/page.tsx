@@ -12,8 +12,8 @@ export default async function AdminNewsletterPage() {
       <div>
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Abonnés newsletter</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="font-display text-2xl text-ink-900">Abonnés newsletter</h1>
+            <p className="mt-1 text-sm text-ink-500">
               {subscribers.length} abonné{subscribers.length > 1 ? "s" : ""} actif
               {subscribers.length > 1 ? "s" : ""}
             </p>
@@ -21,7 +21,7 @@ export default async function AdminNewsletterPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/admin/newsletter/nouvelle"
-              className="inline-flex items-center gap-2 rounded-md bg-brand-dark px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark/90"
+              className="inline-flex items-center gap-2 rounded-sm bg-wine-700 px-4 py-2 text-sm font-medium text-cream-50 transition-colors hover:bg-wine-800"
             >
               <Send className="h-4 w-4" aria-hidden />
               Nouvelle campagne
@@ -30,7 +30,7 @@ export default async function AdminNewsletterPage() {
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/api/admin/newsletter/export"
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-md border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-cream-50"
             >
               <Download className="h-4 w-4" aria-hidden />
               Exporter en CSV
@@ -38,26 +38,26 @@ export default async function AdminNewsletterPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
           <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+            <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-500">
               <tr>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Inscrit le</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-ink-100">
               {subscribers.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={2} className="px-4 py-8 text-center text-ink-400">
                     Aucun abonné pour le moment.
                   </td>
                 </tr>
               ) : (
                 subscribers.map((subscriber) => (
                   <tr key={subscriber.id}>
-                    <td className="px-4 py-3 text-gray-900">{subscriber.email}</td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-ink-900">{subscriber.email}</td>
+                    <td className="px-4 py-3 text-ink-500">
                       {subscriber.subscribedAt.toLocaleDateString("fr-FR", {
                         day: "2-digit",
                         month: "2-digit",
@@ -73,10 +73,10 @@ export default async function AdminNewsletterPage() {
       </div>
 
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Campagnes envoyées</h2>
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <h2 className="mb-4 text-lg font-semibold text-ink-900">Campagnes envoyées</h2>
+        <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
           <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+            <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-500">
               <tr>
                 <th className="px-4 py-3">Objet</th>
                 <th className="px-4 py-3">Article associé</th>
@@ -85,18 +85,18 @@ export default async function AdminNewsletterPage() {
                 <th className="px-4 py-3">Par</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-ink-100">
               {campaigns.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-ink-400">
                     Aucune campagne envoyée pour le moment.
                   </td>
                 </tr>
               ) : (
                 campaigns.map((campaign) => (
                   <tr key={campaign.id}>
-                    <td className="px-4 py-3 text-gray-900">{campaign.subject}</td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-ink-900">{campaign.subject}</td>
+                    <td className="px-4 py-3 text-ink-500">
                       {campaign.article ? (
                         <Link href={`/actualites/${campaign.article.slug}`} className="text-brand hover:underline">
                           {campaign.article.title}
@@ -105,8 +105,8 @@ export default async function AdminNewsletterPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{campaign.recipientCount}</td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-ink-500">{campaign.recipientCount}</td>
+                    <td className="px-4 py-3 text-ink-500">
                       {campaign.sentAt.toLocaleDateString("fr-FR", {
                         day: "2-digit",
                         month: "2-digit",
@@ -115,7 +115,7 @@ export default async function AdminNewsletterPage() {
                         minute: "2-digit",
                       })}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{campaign.sentBy?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-ink-500">{campaign.sentBy?.name ?? "—"}</td>
                   </tr>
                 ))
               )}

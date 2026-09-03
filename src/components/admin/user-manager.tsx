@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createUserSchema, type CreateUserInput } from "@/lib/validation/auth";
 import { Button } from "@/components/ui/button";
 import { FormField, Input, Select } from "@/components/ui/field";
+import { cn } from "@/lib/utils/cn";
+import { Trash2 } from "lucide-react";
 
 interface UserRow {
   id: string;
@@ -89,41 +91,45 @@ export function UserManager({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white lg:col-span-2">
+      <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm lg:col-span-2">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+          <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
             <tr>
-              <th className="px-3 py-2">Nom</th>
-              <th className="px-3 py-2">Email</th>
-              <th className="px-3 py-2">Rôle</th>
-              <th className="px-3 py-2">Restaurant</th>
-              <th className="px-3 py-2">Actif</th>
-              <th className="px-3 py-2">Actions</th>
+              <th className="px-4 py-3">Nom</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Rôle</th>
+              <th className="px-4 py-3">Restaurant</th>
+              <th className="px-4 py-3">Actif</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-ink-100">
             {users.map((user) => (
-              <tr key={user.id}>
-                <td className="px-3 py-2 font-medium text-gray-900">{user.name}</td>
-                <td className="px-3 py-2">{user.email}</td>
-                <td className="px-3 py-2">{ROLE_LABELS[user.role]}</td>
-                <td className="px-3 py-2 text-gray-500">{user.restaurant?.name ?? "—"}</td>
-                <td className="px-3 py-2">
+              <tr key={user.id} className="transition-colors hover:bg-cream-50/60">
+                <td className="px-4 py-3 font-medium text-ink-900">{user.name}</td>
+                <td className="px-4 py-3 text-ink-700">{user.email}</td>
+                <td className="px-4 py-3 text-ink-700">{ROLE_LABELS[user.role]}</td>
+                <td className="px-4 py-3 text-ink-500">{user.restaurant?.name ?? "—"}</td>
+                <td className="px-4 py-3">
                   <button
                     onClick={() => toggleActive(user)}
                     disabled={user.id === currentUserId}
-                    className="text-xs text-brand hover:underline disabled:opacity-40"
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors disabled:opacity-40",
+                      user.isActive ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-ink-100 text-ink-500 hover:bg-ink-200"
+                    )}
                   >
                     {user.isActive ? "Oui" : "Non"}
                   </button>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-3">
                   <button
                     onClick={() => remove(user)}
                     disabled={user.id === currentUserId}
-                    className="text-xs text-red-600 hover:underline disabled:opacity-40"
+                    title="Supprimer"
+                    className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
                   >
-                    Supprimer
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
                 </td>
               </tr>
@@ -132,8 +138,8 @@ export function UserManager({
         </table>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-900">Nouveau compte</h2>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-lg text-ink-900">Nouveau compte</h2>
         <FormField label="Nom" htmlFor="name" error={errors.name?.message}>
           <Input id="name" {...register("name")} />
         </FormField>

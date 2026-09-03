@@ -90,13 +90,13 @@ export function MediaPicker({
       <div className="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-lg bg-white p-5 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">Médiathèque</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700" aria-label="Fermer">
+          <button onClick={onClose} className="text-ink-400 hover:text-ink-700" aria-label="Fermer">
             ✕
           </button>
         </div>
 
         <div
-          className="mb-4 rounded-md border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-500"
+          className="mb-4 rounded-md border-2 border-dashed border-ink-200 p-4 text-center text-sm text-ink-500"
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
@@ -127,9 +127,9 @@ export function MediaPicker({
 
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <p className="text-sm text-gray-500">Chargement...</p>
+            <p className="text-sm text-ink-500">Chargement...</p>
           ) : items.length === 0 ? (
-            <p className="text-sm text-gray-500">Aucun média pour le moment.</p>
+            <p className="text-sm text-ink-500">Aucun média pour le moment.</p>
           ) : (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
               {items.map((item) => (
@@ -155,7 +155,7 @@ export function MediaPicker({
           )}
         </div>
 
-        <div className="mt-4 flex justify-end gap-2 border-t border-gray-100 pt-4">
+        <div className="mt-4 flex justify-end gap-2 border-t border-ink-100 pt-4">
           <Button type="button" variant="ghost" onClick={onClose}>
             Annuler
           </Button>

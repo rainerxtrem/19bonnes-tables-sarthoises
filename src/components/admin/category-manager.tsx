@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { categorySchema, type CategoryInput } from "@/lib/validation/article";
 import { Button } from "@/components/ui/button";
 import { FormField, Input } from "@/components/ui/field";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 type CategoryRow = Category & { _count: { articles: number } };
@@ -79,20 +80,20 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white lg:col-span-2">
+      <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm lg:col-span-2">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+          <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
             <tr>
-              <th className="px-3 py-2">Nom</th>
-              <th className="px-3 py-2">Slug</th>
-              <th className="px-3 py-2">Articles</th>
-              <th className="px-3 py-2">Actions</th>
+              <th className="px-4 py-3">Nom</th>
+              <th className="px-4 py-3">Slug</th>
+              <th className="px-4 py-3">Articles</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-ink-100">
             {categories.map((c) => (
-              <tr key={c.id}>
-                <td className="px-3 py-2">
+              <tr key={c.id} className="transition-colors hover:bg-cream-50/60">
+                <td className="px-4 py-3">
                   {editingId === c.id ? (
                     <input
                       autoFocus
@@ -103,19 +104,27 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
                         if (e.key === "Enter") saveEdit(c);
                         if (e.key === "Escape") setEditingId(null);
                       }}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                      className="w-full rounded border border-ink-200 px-2 py-1 text-sm"
                     />
                   ) : (
-                    <button onClick={() => startEdit(c)} className="text-left hover:text-brand hover:underline">
+                    <button
+                      onClick={() => startEdit(c)}
+                      className="inline-flex items-center gap-1.5 text-left font-medium text-ink-900 hover:text-wine-700"
+                    >
                       {c.name}
+                      <Pencil className="h-3 w-3 text-ink-300" aria-hidden />
                     </button>
                   )}
                 </td>
-                <td className="px-3 py-2 font-mono text-xs text-gray-500">{c.slug}</td>
-                <td className="px-3 py-2 text-gray-500">{c._count.articles}</td>
-                <td className="px-3 py-2">
-                  <button onClick={() => remove(c)} className="text-xs text-red-600 hover:underline">
-                    Supprimer
+                <td className="px-4 py-3 font-mono text-xs text-ink-500">{c.slug}</td>
+                <td className="px-4 py-3 text-ink-500">{c._count.articles}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => remove(c)}
+                    title="Supprimer"
+                    className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
                 </td>
               </tr>
@@ -123,12 +132,12 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
           </tbody>
         </table>
         {categories.length === 0 ? (
-          <p className="p-8 text-center text-sm text-gray-500">Aucune catégorie pour le moment.</p>
+          <p className="p-8 text-center text-sm text-ink-500">Aucune catégorie pour le moment.</p>
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-900">Nouvelle catégorie</h2>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-base text-ink-900">Nouvelle catégorie</h2>
         <FormField label="Nom" htmlFor="name" error={errors.name?.message}>
           <Input id="name" {...register("name")} placeholder="Ex. Recettes" />
         </FormField>

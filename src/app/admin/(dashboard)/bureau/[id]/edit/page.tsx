@@ -14,7 +14,7 @@ export default async function EditBoardMemberPage({ params }: { params: Promise<
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">
+      <h1 className="mb-6 font-display text-2xl text-ink-900">
         Modifier {member.firstName} {member.lastName}
       </h1>
       <BoardMemberForm member={member} restaurants={restaurants} />

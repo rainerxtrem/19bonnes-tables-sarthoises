@@ -11,8 +11,8 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-semibold text-gray-900">Catégories</h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <h1 className="mb-2 font-display text-2xl text-ink-900">Catégories</h1>
+      <p className="mb-6 text-sm text-ink-500">
         Les catégories permettent de classer les actualités. Le slug (utilisé dans les URLs) est généré
         automatiquement à partir du nom si vous le laissez vide.
       </p>

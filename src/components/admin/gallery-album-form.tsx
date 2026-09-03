@@ -58,7 +58,7 @@ export function GalleryAlbumForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
       <FormField label="Titre" htmlFor="title" error={errors.title?.message}>
         <Input id="title" {...register("title")} />
       </FormField>

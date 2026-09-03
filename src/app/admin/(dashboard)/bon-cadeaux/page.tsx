@@ -8,8 +8,8 @@ export default async function AdminBonCadeauxPage() {
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-semibold text-gray-900">Bons cadeaux</h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <h1 className="mb-2 font-display text-2xl text-ink-900">Bons cadeaux</h1>
+      <p className="mb-6 text-sm text-ink-500">
         Ce contenu est une page CMS comme les autres (visible sur /bon-cadeaux). La commande en ligne, le paiement
         et la génération automatique de bons ne sont pas développés pour le moment — l&apos;architecture (modèle
         Page + Media) permet de les ajouter plus tard sans tout reconstruire.

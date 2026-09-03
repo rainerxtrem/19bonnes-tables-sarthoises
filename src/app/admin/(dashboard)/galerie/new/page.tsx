@@ -8,7 +8,7 @@ export default async function NewGalleryAlbumPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Nouvel album photo</h1>
+      <h1 className="mb-6 font-display text-2xl text-ink-900">Nouvel album photo</h1>
       <GalleryAlbumForm restaurants={restaurants} />
     </div>
   );

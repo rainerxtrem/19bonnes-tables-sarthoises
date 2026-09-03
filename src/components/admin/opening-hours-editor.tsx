@@ -61,11 +61,11 @@ export function OpeningHoursEditor({
   }
 
   return (
-    <div className="divide-y divide-gray-100 rounded-md border border-gray-200 bg-white">
+    <div className="divide-y divide-ink-100 rounded-md border border-ink-100 bg-white">
       {days.map((day, dayIndex) => (
         <div key={day.day} className="flex flex-wrap items-start gap-3 p-3">
-          <div className="w-24 pt-1 text-sm font-medium capitalize text-gray-700">{day.day}</div>
-          <label className="flex items-center gap-1.5 pt-1 text-xs text-gray-500">
+          <div className="w-24 pt-1 text-sm font-medium capitalize text-ink-700">{day.day}</div>
+          <label className="flex items-center gap-1.5 pt-1 text-xs text-ink-500">
             <input
               type="checkbox"
               checked={day.closed}
@@ -81,14 +81,14 @@ export function OpeningHoursEditor({
                     type="time"
                     value={slot.start}
                     onChange={(e) => updateSlot(dayIndex, slotIndex, { start: e.target.value })}
-                    className="rounded border border-gray-300 px-2 py-1 text-xs"
+                    className="rounded border border-ink-200 px-2 py-1 text-xs"
                   />
-                  <span className="text-xs text-gray-400">à</span>
+                  <span className="text-xs text-ink-400">à</span>
                   <input
                     type="time"
                     value={slot.end}
                     onChange={(e) => updateSlot(dayIndex, slotIndex, { end: e.target.value })}
-                    className="rounded border border-gray-300 px-2 py-1 text-xs"
+                    className="rounded border border-ink-200 px-2 py-1 text-xs"
                   />
                   <button
                     type="button"

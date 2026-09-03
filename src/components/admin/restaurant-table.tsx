@@ -17,6 +17,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { GripVertical, Pencil, Copy, Archive, CheckCircle2, Trash2, Plus } from "lucide-react";
 
 interface RestaurantRow {
   id: string;
@@ -37,10 +38,10 @@ function SortableRow({ row, children }: { row: RestaurantRow; children: React.Re
     <tr
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={isDragging ? "bg-brand-cream" : undefined}
+      className={isDragging ? "bg-wine-50" : "transition-colors hover:bg-cream-50/60"}
     >
-      <td className="w-8 cursor-grab px-2 text-gray-400" {...attributes} {...listeners}>
-        ⠿
+      <td className="w-8 cursor-grab px-2 text-ink-300" {...attributes} {...listeners}>
+        <GripVertical className="h-4 w-4" aria-hidden />
       </td>
       {children}
     </tr>
@@ -104,62 +105,73 @@ export function RestaurantTable({ initialRows }: { initialRows: RestaurantRow[] 
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+        <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
           <tr>
             <th />
-            <th className="px-3 py-2">Photo</th>
-            <th className="px-3 py-2">Nom</th>
-            <th className="px-3 py-2">Statut</th>
-            <th className="px-3 py-2">Modifié</th>
-            <th className="px-3 py-2">Actions</th>
+            <th className="px-4 py-3">Photo</th>
+            <th className="px-4 py-3">Nom</th>
+            <th className="px-4 py-3">Statut</th>
+            <th className="px-4 py-3">Modifié</th>
+            <th className="px-4 py-3">Actions</th>
           </tr>
         </thead>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={rows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-ink-100">
               {rows.map((row) => (
                 <SortableRow key={row.id} row={row}>
-                  <td className="px-3 py-2">
-                    <div className="relative h-10 w-14 overflow-hidden rounded bg-gray-100">
+                  <td className="px-4 py-3">
+                    <div className="relative h-10 w-14 overflow-hidden rounded bg-cream-100">
                       {row.mainImage ? (
                         <Image src={row.mainImage.url} alt={row.mainImage.alt ?? ""} fill className="object-cover" />
                       ) : null}
                     </div>
                   </td>
-                  <td className="px-3 py-2 font-medium text-gray-900">{row.name}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3 font-medium text-ink-900">{row.name}</td>
+                  <td className="px-4 py-3">
                     <StatusBadge status={row.status} />
                   </td>
-                  <td className="px-3 py-2 text-gray-500">
+                  <td className="px-4 py-3 text-ink-500">
                     {formatDistanceToNow(new Date(row.updatedAt), { addSuffix: true, locale: fr })}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-2">
-                      <Link href={`/admin/restaurants/${row.id}/edit`} className="text-brand hover:underline">
-                        Modifier
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`/admin/restaurants/${row.id}/edit`}
+                        title="Modifier"
+                        className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-wine-50 hover:text-wine-700"
+                      >
+                        <Pencil className="h-3.5 w-3.5" aria-hidden />
                       </Link>
                       <button
                         disabled={pending === row.id}
                         onClick={() => toggleStatus(row)}
-                        className="text-gray-600 hover:underline disabled:opacity-50"
+                        title={row.status === "PUBLISHED" ? "Désactiver" : "Publier"}
+                        className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-gold-100 hover:text-gold-800 disabled:opacity-50"
                       >
-                        {row.status === "PUBLISHED" ? "Désactiver" : "Publier"}
+                        {row.status === "PUBLISHED" ? (
+                          <Archive className="h-3.5 w-3.5" aria-hidden />
+                        ) : (
+                          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                        )}
                       </button>
                       <button
                         disabled={pending === row.id}
                         onClick={() => duplicate(row)}
-                        className="text-gray-600 hover:underline disabled:opacity-50"
+                        title="Dupliquer"
+                        className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-cream-100 hover:text-ink-700 disabled:opacity-50"
                       >
-                        Dupliquer
+                        <Copy className="h-3.5 w-3.5" aria-hidden />
                       </button>
                       <button
                         disabled={pending === row.id}
                         onClick={() => remove(row)}
-                        className="text-red-600 hover:underline disabled:opacity-50"
+                        title="Supprimer"
+                        className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                       >
-                        Supprimer
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
                       </button>
                     </div>
                   </td>
@@ -170,9 +182,9 @@ export function RestaurantTable({ initialRows }: { initialRows: RestaurantRow[] 
         </DndContext>
       </table>
       {rows.length === 0 ? (
-        <div className="p-8 text-center text-sm text-gray-500">
+        <div className="p-8 text-center text-sm text-ink-500">
           Aucun restaurant pour le moment.{" "}
-          <Link href="/admin/restaurants/new" className="text-brand hover:underline">
+          <Link href="/admin/restaurants/new" className="text-wine-700 hover:underline">
             En créer un
           </Link>
           .
@@ -184,12 +196,13 @@ export function RestaurantTable({ initialRows }: { initialRows: RestaurantRow[] 
 
 export function RestaurantListHeader() {
   return (
-    <div className="mb-4 flex items-center justify-between">
-      <h1 className="text-xl font-semibold text-gray-900">Restaurants</h1>
+    <div className="mb-6 flex items-center justify-between">
+      <h1 className="font-display text-2xl text-ink-900">Restaurants</h1>
       <Link
         href="/admin/restaurants/new"
-        className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"
+        className="inline-flex items-center gap-2 rounded-sm bg-wine-700 px-4 py-2 text-sm font-medium text-cream-50 transition-colors hover:bg-wine-800"
       >
+        <Plus className="h-4 w-4" aria-hidden />
         Nouveau restaurant
       </Link>
     </div>

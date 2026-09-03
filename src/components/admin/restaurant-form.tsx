@@ -113,8 +113,8 @@ export function RestaurantForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Informations générales</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Informations générales</h2>
           <FormField label="Nom du restaurant" htmlFor="name" error={errors.name?.message}>
             <Input id="name" {...register("name")} />
           </FormField>
@@ -140,8 +140,8 @@ export function RestaurantForm({
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Coordonnées</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Coordonnées</h2>
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Adresse" htmlFor="address" error={errors.address?.message}>
               <Input id="address" {...register("address")} />
@@ -184,8 +184,8 @@ export function RestaurantForm({
           </div>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Horaires</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Horaires</h2>
           <Controller
             control={control}
             name="openingHours"
@@ -195,8 +195,8 @@ export function RestaurantForm({
           />
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Tarifs & informations complémentaires</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Tarifs & informations complémentaires</h2>
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Tarif midi" htmlFor="priceLunch" error={errors.priceLunch?.message}>
               <Input id="priceLunch" {...register("priceLunch")} placeholder="ex. 19€" />
@@ -210,8 +210,8 @@ export function RestaurantForm({
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Référencement (SEO)</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Référencement (SEO)</h2>
           <FormField label="Titre SEO" htmlFor="seoTitle" error={errors.seoTitle?.message}>
             <Input id="seoTitle" {...register("seoTitle")} />
           </FormField>
@@ -222,8 +222,8 @@ export function RestaurantForm({
       </div>
 
       <div className="space-y-6">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Publication</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Publication</h2>
           <FormField label="Statut" htmlFor="status" error={errors.status?.message}>
             <Select id="status" {...register("status")}>
               <option value="DRAFT">Brouillon</option>
@@ -236,7 +236,7 @@ export function RestaurantForm({
               <FormField label="Ordre d'affichage" htmlFor="order" error={errors.order?.message}>
                 <Input id="order" type="number" {...register("order", { valueAsNumber: true })} />
               </FormField>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm text-ink-700">
                 <input type="checkbox" {...register("isFeatured")} />
                 Restaurant mis en avant
               </label>
@@ -250,14 +250,14 @@ export function RestaurantForm({
           {serverError ? <p className="text-sm text-red-600">{serverError}</p> : null}
         </section>
 
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Photo principale</h2>
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Photo principale</h2>
           {mainImagePreview ? (
             <div className="relative aspect-video overflow-hidden rounded-md">
               <Image src={mainImagePreview.url} alt={mainImagePreview.alt ?? ""} fill className="object-cover" />
             </div>
           ) : (
-            <div className="flex aspect-video items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+            <div className="flex aspect-video items-center justify-center rounded-md bg-cream-100 text-xs text-ink-400">
               Aucune image
             </div>
           )}
@@ -275,8 +275,8 @@ export function RestaurantForm({
           />
         </section>
 
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Galerie du restaurant</h2>
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Galerie du restaurant</h2>
           <div className="grid grid-cols-3 gap-2">
             {galleryPreview.map((item) => (
               <div key={item.id} className="relative aspect-square overflow-hidden rounded-md">

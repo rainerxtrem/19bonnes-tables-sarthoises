@@ -57,7 +57,7 @@ export function PartnerForm({ partner }: { partner?: (Partner & { logo: Media | 
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5 lg:col-span-2">
+      <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 lg:col-span-2">
         <FormField label="Nom" htmlFor="name" error={errors.name?.message}>
           <Input id="name" {...register("name")} />
         </FormField>
@@ -69,17 +69,17 @@ export function PartnerForm({ partner }: { partner?: (Partner & { logo: Media | 
         </FormField>
       </section>
 
-      <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+      <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
         <FormField label="Ordre d'affichage" htmlFor="order" error={errors.order?.message}>
           <Input id="order" type="number" {...register("order", { valueAsNumber: true })} />
         </FormField>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink-700">
           <input type="checkbox" {...register("isActive")} />
           Actif
         </label>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700">Logo</p>
+          <p className="mb-2 text-sm font-medium text-ink-700">Logo</p>
           {logo ? (
             <div className="relative mb-2 h-16 w-full">
               <Image src={logo.url} alt={logo.alt ?? ""} fill className="object-contain" />

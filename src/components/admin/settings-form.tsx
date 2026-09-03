@@ -67,8 +67,8 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Identité du site</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Identité du site</h2>
           <FormField label="Nom du site" htmlFor="siteName" error={errors.siteName?.message}>
             <Input id="siteName" {...register("siteName")} />
           </FormField>
@@ -77,8 +77,8 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Coordonnées</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Coordonnées</h2>
           <FormField label="Email de contact" htmlFor="contactEmail" error={errors.contactEmail?.message}>
             <Input id="contactEmail" {...register("contactEmail")} />
           </FormField>
@@ -99,8 +99,8 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">SEO global</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">SEO global</h2>
           <FormField label="Titre par défaut" htmlFor="seoDefaultTitle" error={errors.seoDefaultTitle?.message}>
             <Input id="seoDefaultTitle" {...register("seoDefaultTitle")} />
           </FormField>
@@ -112,8 +112,8 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
           </FormField>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Footer</h2>
+        <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Footer</h2>
           <FormField label="Texte du footer" htmlFor="footerText" error={errors.footerText?.message}>
             <Textarea id="footerText" rows={3} {...register("footerText")} />
           </FormField>
@@ -121,8 +121,8 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
       </div>
 
       <div className="space-y-6">
-        <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-900">Logo</h2>
+        <section className="space-y-3 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Logo</h2>
           {logo ? (
             <div className="relative h-16 w-full">
               <Image src={logo.url} alt={logo.alt ?? ""} fill className="object-contain" />

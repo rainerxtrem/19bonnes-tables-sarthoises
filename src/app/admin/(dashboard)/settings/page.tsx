@@ -13,7 +13,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Paramètres du site</h1>
+      <h1 className="mb-6 font-display text-2xl text-ink-900">Paramètres du site</h1>
       <SettingsForm settings={settings} />
     </div>
   );

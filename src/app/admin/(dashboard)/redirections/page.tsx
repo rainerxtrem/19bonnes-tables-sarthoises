@@ -13,8 +13,8 @@ export default async function AdminRedirectsPage() {
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-semibold text-gray-900">Redirections 301</h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <h1 className="mb-2 font-display text-2xl text-ink-900">Redirections 301</h1>
+      <p className="mb-6 text-sm text-ink-500">
         Les redirections connues de l&apos;ancien site B12 sont déjà configurées au niveau serveur. Utilisez cette
         page pour en ajouter de nouvelles au fil du temps (ex. changement de slug d&apos;un restaurant).
       </p>

@@ -26,7 +26,7 @@ function SortableThumb({ item, onRemove }: { item: GalleryItemRow; onRemove: () 
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className="relative aspect-square cursor-grab overflow-hidden rounded-md border border-gray-200"
+      className="relative aspect-square cursor-grab overflow-hidden rounded-md border border-ink-100"
       {...attributes}
       {...listeners}
     >
@@ -90,9 +90,9 @@ export function GalleryItemsManager({ albumId, initialItems }: { albumId: string
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+    <div className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-900">Photos de l&apos;album ({items.length})</h2>
+        <h2 className="font-display text-base text-ink-900">Photos de l&apos;album ({items.length})</h2>
         <Button type="button" size="sm" onClick={() => setPickerOpen(true)}>
           Ajouter des photos
         </Button>
@@ -108,7 +108,7 @@ export function GalleryItemsManager({ albumId, initialItems }: { albumId: string
         </SortableContext>
       </DndContext>
 
-      {items.length === 0 ? <p className="text-sm text-gray-500">Aucune photo dans cet album pour le moment.</p> : null}
+      {items.length === 0 ? <p className="text-sm text-ink-500">Aucune photo dans cet album pour le moment.</p> : null}
 
       <MediaPicker open={pickerOpen} multiple onClose={() => setPickerOpen(false)} onSelect={addMedia} />
     </div>

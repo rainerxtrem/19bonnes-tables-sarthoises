@@ -14,7 +14,7 @@ export default async function AdminNavigationPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Navigation</h1>
+      <h1 className="mb-6 font-display text-2xl text-ink-900">Navigation</h1>
       <NavigationManager initialItems={items} pages={pages} />
     </div>
   );

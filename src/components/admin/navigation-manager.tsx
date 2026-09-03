@@ -38,17 +38,17 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("flex items-center justify-between gap-3 p-3", isDragging && "bg-brand-cream")}
+      className={cn("flex items-center justify-between gap-3 p-3", isDragging && "bg-wine-50")}
     >
       <div className="flex items-center gap-3">
-        <span className="cursor-grab text-gray-400" {...attributes} {...listeners}>
+        <span className="cursor-grab text-ink-400" {...attributes} {...listeners}>
           ⠿
         </span>
         <div>
-          <p className="text-sm font-medium text-gray-900">
-            {row.label} {!row.isActive ? <span className="text-xs text-gray-400">(inactif)</span> : null}
+          <p className="text-sm font-medium text-ink-900">
+            {row.label} {!row.isActive ? <span className="text-xs text-ink-400">(inactif)</span> : null}
           </p>
-          <p className="text-xs text-gray-500">{describeTarget(row)}</p>
+          <p className="text-xs text-ink-500">{describeTarget(row)}</p>
         </div>
       </div>
       <div className="flex gap-3 text-sm">
@@ -121,10 +121,10 @@ export function NavigationManager({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="rounded-lg border border-gray-200 bg-white lg:col-span-2">
+      <div className="rounded-lg border border-ink-100 bg-white lg:col-span-2">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={topLevel.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-ink-100">
               {topLevel.map((row) => (
                 <div key={row.id}>
                   <SortableRow
@@ -136,10 +136,10 @@ export function NavigationManager({
                   {children
                     .filter((child) => child.parentId === row.id)
                     .map((child) => (
-                      <div key={child.id} className="flex items-center justify-between gap-3 border-t border-gray-100 py-3 pl-10 pr-3">
+                      <div key={child.id} className="flex items-center justify-between gap-3 border-t border-ink-100 py-3 pl-10 pr-3">
                         <div>
-                          <p className="text-sm text-gray-700">↳ {child.label}</p>
-                          <p className="text-xs text-gray-500">{describeTarget(child)}</p>
+                          <p className="text-sm text-ink-700">↳ {child.label}</p>
+                          <p className="text-xs text-ink-500">{describeTarget(child)}</p>
                         </div>
                         <div className="flex gap-3 text-sm">
                           <button onClick={() => setEditing(child)} className="text-brand hover:underline">
@@ -157,9 +157,9 @@ export function NavigationManager({
           </SortableContext>
         </DndContext>
 
-        {items.length === 0 ? <p className="p-8 text-center text-sm text-gray-500">Aucun élément de menu.</p> : null}
+        {items.length === 0 ? <p className="p-8 text-center text-sm text-ink-500">Aucun élément de menu.</p> : null}
 
-        <div className="border-t border-gray-100 p-3">
+        <div className="border-t border-ink-100 p-3">
           <button onClick={() => setEditing("new")} className="text-sm text-brand hover:underline">
             + Ajouter un élément de menu
           </button>
@@ -178,7 +178,7 @@ export function NavigationManager({
             }}
           />
         ) : (
-          <p className="rounded-lg border border-dashed border-gray-300 p-5 text-sm text-gray-500">
+          <p className="rounded-lg border border-dashed border-ink-200 p-5 text-sm text-ink-500">
             Sélectionnez « Modifier » ou « Ajouter un élément de menu » pour afficher le formulaire.
           </p>
         )}

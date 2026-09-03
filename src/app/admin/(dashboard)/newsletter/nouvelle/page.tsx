@@ -21,13 +21,13 @@ export default async function NewNewsletterCampaignPage() {
     <div>
       <Link
         href="/admin/newsletter"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900"
       >
         <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
         Retour aux abonnés
       </Link>
-      <h1 className="mb-2 text-xl font-semibold text-gray-900">Nouvelle campagne</h1>
-      <p className="mb-6 max-w-2xl text-sm text-gray-500">
+      <h1 className="mb-2 font-display text-2xl text-ink-900">Nouvelle campagne</h1>
+      <p className="mb-6 max-w-2xl text-sm text-ink-500">
         Envoie un email à tous les abonnés actifs de la newsletter. Associe un article publié pour ajouter
         automatiquement un bouton « Lire l&apos;article complet », ou rédige un message libre.
       </p>

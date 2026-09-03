@@ -65,7 +65,7 @@ export function BoardMemberForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5 lg:col-span-2">
+      <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 lg:col-span-2">
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Prénom" htmlFor="firstName" error={errors.firstName?.message}>
             <Input id="firstName" {...register("firstName")} />
@@ -97,17 +97,17 @@ export function BoardMemberForm({
         </FormField>
       </section>
 
-      <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
+      <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
         <FormField label="Ordre d'affichage" htmlFor="order" error={errors.order?.message}>
           <Input id="order" type="number" {...register("order", { valueAsNumber: true })} />
         </FormField>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink-700">
           <input type="checkbox" {...register("isActive")} />
           Actif
         </label>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-gray-700">Photo</p>
+          <p className="mb-2 text-sm font-medium text-ink-700">Photo</p>
           {photo ? (
             <div className="relative mb-2 aspect-square w-24 overflow-hidden rounded-full">
               <Image src={photo.url} alt={photo.alt ?? ""} fill className="object-cover" />
