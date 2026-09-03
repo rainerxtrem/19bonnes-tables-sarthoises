@@ -73,12 +73,12 @@ export async function createVoucherCheckout(input: GiftVoucherPurchaseInput) {
     cancel_url: absoluteUrl("/bon-cadeaux"),
   });
 
-  await prisma.giftVoucher.update({
+  const updated = await prisma.giftVoucher.update({
     where: { id: voucher.id },
     data: { stripeSessionId: session.id },
   });
 
-  return { voucher, checkoutUrl: session.url };
+  return { voucher: updated, checkoutUrl: session.url };
 }
 
 /** Appelé par le webhook Stripe une fois le paiement confirmé. */
