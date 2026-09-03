@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  // pdfkit lit ses métriques de polices standard (.afm) via fs à
+  // l'exécution, avec un chemin non statiquement analysable par le
+  // file-tracer de Next — sans ceci, le dossier est absent du build
+  // standalone et la génération de PDF (bons cadeaux) échoue en prod.
+  outputFileTracingIncludes: {
+    "/api/webhooks/stripe": ["./node_modules/pdfkit/js/data/**"],
+  },
   images: {
     remotePatterns: [
       {

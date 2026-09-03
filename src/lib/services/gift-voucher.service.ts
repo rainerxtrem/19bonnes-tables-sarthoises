@@ -5,6 +5,7 @@ import { sendMail } from "@/lib/mailer";
 import { renderEmail, emailButton } from "@/lib/email-template";
 import { absoluteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/services/settings.service";
+import { generateVoucherPdf } from "@/lib/services/gift-voucher-pdf";
 import type { GiftVoucherPurchaseInput } from "@/lib/validation/gift-voucher";
 
 // Durée de validité légale usuelle pour un bon d'achat/carte cadeau en
@@ -107,84 +108,6 @@ export async function activateVoucherFromCheckout(sessionId: string, paymentInte
   await sendVoucherEmail(activated);
 }
 
-/**
- * Carte-cadeau façon "certificat" — cadre doré, sceau, montant encadré,
- * QR code — pensée table-based / styles inline pour rester fiable dans les
- * clients mail (pas de web font custom ni de dégradé CSS, juste une pile de
- * polices serif classiques ; le double-cadre utilise `border-style:double`,
- * du CSS simple bien supporté partout).
- */
-function renderVoucherCertificateHtml(params: {
-  logoUrl: string | null;
-  amountLabel: string;
-  code: string;
-  qrImageUrl: string;
-  expiryLabel: string | null;
-  offeredByLabel: string | null;
-  messageQuote: string | null;
-}): string {
-  const { logoUrl, amountLabel, code, qrImageUrl, expiryLabel, offeredByLabel, messageQuote } = params;
-  const serif = "Georgia, 'Times New Roman', serif";
-
-  return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; background-color:#fdfbf6; border:1px solid #cdb98c;">
-            <tr>
-              <td style="border:3px double #ecdfc2; padding:32px 28px; text-align:center;">
-                ${
-                  logoUrl
-                    ? `<img src="${logoUrl}" width="64" height="64" alt="" style="display:inline-block; width:64px; height:64px; border-radius:50%; border:3px solid #fdfbf6; outline:1px solid #d8c79c; object-fit:cover;" />`
-                    : `<div style="display:inline-block; width:64px; height:64px; line-height:64px; border-radius:50%; background-color:#2b2419; color:#e6d6ae; font-family:${serif}; font-size:20px; font-weight:bold;">19</div>`
-                }
-
-                <div style="margin:18px auto 6px; width:60px; border-top:1px solid #cdb98c;"></div>
-                <p style="margin:0 0 18px; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#a08a5e; font-weight:bold;">Association des 19 Bonnes Tables Sarthoises</p>
-
-                <p style="margin:0 0 4px; font-family:${serif}; font-size:38px; line-height:1.1; color:#2b2419;">Bon cadeau</p>
-                <p style="margin:0 0 22px; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#a08a5e; font-weight:bold;">Valable dans n'importe lequel des 19 restaurants membres</p>
-
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #8a6a2f; border-bottom:2px solid #8a6a2f; margin:0 0 22px;">
-                  <tr>
-                    <td align="center" style="padding:14px 0; background-color:#f4ebd7;">
-                      <span style="font-family:${serif}; font-size:44px; font-weight:bold; color:#8a6a2f;">${amountLabel}</span>
-                      <span style="font-family:${serif}; font-size:24px; color:#8a6a2f;"> €</span>
-                    </td>
-                  </tr>
-                </table>
-
-                ${
-                  offeredByLabel
-                    ? `<p style="margin:0 0 18px; font-size:13px; font-style:italic; color:#5c5240;">Offert par ${offeredByLabel}</p>`
-                    : ""
-                }
-                ${
-                  messageQuote
-                    ? `<p style="margin:0 0 22px; padding:14px 16px; background-color:#f4efe3; font-size:13px; font-style:italic; color:#5c5240;">« ${messageQuote} »</p>`
-                    : ""
-                }
-
-                <div style="margin:0 0 20px; height:1px; background-color:#eee6d5;"></div>
-
-                <img src="${qrImageUrl}" alt="QR code du bon cadeau" width="140" height="140" style="display:block; margin:0 auto 14px; border:0;" />
-                <p style="margin:0 0 4px; font-family:'Courier New', monospace; font-size:19px; letter-spacing:2px; color:#2b2419; font-weight:bold;">${code}</p>
-                <p style="margin:0; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#b3a17c; font-weight:bold;">N° de série</p>
-
-                ${
-                  expiryLabel
-                    ? `<p style="margin:18px 0 0; font-size:11px; color:#8d8471;">Valable jusqu'au <strong style="color:#2b2419;">${expiryLabel}</strong></p>`
-                    : ""
-                }
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  `;
-}
-
 async function sendVoucherEmail(voucher: {
   code: string;
   amountCents: number;
@@ -202,14 +125,26 @@ async function sendVoucherEmail(voucher: {
   const expiryLabel = voucher.expiresAt
     ? voucher.expiresAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : null;
-
-  // Image PNG servie depuis notre propre route (voir
-  // /api/gift-vouchers/[code]/qr) plutôt qu'en data: URI intégré au HTML :
-  // plusieurs clients mail (Gmail, Outlook selon les cas) bloquent
-  // silencieusement les images en data: URI, alors qu'une vraie URL
-  // http(s) s'affiche de façon fiable partout.
-  const qrImageUrl = absoluteUrl(`/api/gift-vouchers/${voucher.code}/qr`);
   const logoUrl = settings.logo?.url ?? null;
+
+  // Le visuel "certificat" (cadre doré, sceau, volet d'authentification
+  // avec QR) vit désormais dans une pièce jointe PDF plutôt que dans le
+  // corps HTML de l'email — bien plus fidèle au design voulu que ce que
+  // les clients mail savent restituer (dégradés, polices, double-cadre).
+  let pdfAttachment: { filename: string; content: string }[] | undefined;
+  try {
+    const pdfBuffer = await generateVoucherPdf({
+      amountLabel: amount,
+      code: voucher.code,
+      expiryLabel,
+      buyerName: voucher.buyerName,
+      recipientName: isGift ? voucher.recipientName : null,
+      logoUrl,
+    });
+    pdfAttachment = [{ filename: `bon-cadeau-${voucher.code}.pdf`, content: pdfBuffer.toString("base64") }];
+  } catch (error) {
+    console.error("Génération du PDF bon cadeau échouée:", error);
+  }
 
   const bodyHtml = `
     <p style="margin:0 0 16px;">Bonjour${isGift && voucher.recipientName ? " " + voucher.recipientName : ""},</p>
@@ -220,17 +155,14 @@ async function sendVoucherEmail(voucher: {
           : `Merci pour votre achat ! Voici votre bon cadeau de <strong>${amount} €</strong>, utilisable dans n'importe lequel des restaurants membres des ${settings.siteName}.`
       }
     </p>
-    ${renderVoucherCertificateHtml({
-      logoUrl,
-      amountLabel: amount,
-      code: voucher.code,
-      qrImageUrl,
-      expiryLabel,
-      offeredByLabel: isGift ? voucher.buyerName : null,
-      messageQuote: isGift ? voucher.message : null,
-    })}
+    ${voucher.message && isGift ? `<p style="margin:0 0 16px; padding:14px; background-color:#faf6ee; border-radius:3px; font-style:italic;">« ${voucher.message} »</p>` : ""}
+    <div style="text-align:center; margin:24px 0; padding:20px; background-color:#faf6ee; border-radius:4px;">
+      <p style="margin:0 0 6px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#8d8471;">Votre code</p>
+      <p style="margin:0; font-family:'Courier New', monospace; font-size:24px; letter-spacing:2px; color:#231e1a; font-weight:bold;">${voucher.code}</p>
+    </div>
     <p style="margin:0 0 8px; font-size:13px; color:#6f6455;">
-      Présentez ce code (imprimé ou sur votre téléphone) directement au restaurant de votre choix parmi les membres de l'association.
+      Votre bon cadeau, prêt à imprimer, se trouve en pièce jointe (PDF). Présentez-le — imprimé ou sur votre téléphone, code seul suffit aussi — directement au restaurant de votre choix parmi les membres de l'association.
+      ${expiryLabel ? `Valable jusqu'au ${expiryLabel}.` : ""}
     </p>
     ${emailButton("Voir les restaurants membres", absoluteUrl("/nos-restaurants"))}
   `;
@@ -238,12 +170,13 @@ async function sendVoucherEmail(voucher: {
   await sendMail({
     to,
     subject: isGift ? `${voucher.buyerName} vous offre un bon cadeau !` : "Votre bon cadeau",
-    text: `Votre bon cadeau de ${amount} € : ${voucher.code}\n\nUtilisable dans n'importe lequel des restaurants membres des ${settings.siteName}.${expiryLabel ? ` Valable jusqu'au ${expiryLabel}.` : ""}`,
+    text: `Votre bon cadeau de ${amount} € : ${voucher.code}\n\nUtilisable dans n'importe lequel des restaurants membres des ${settings.siteName}.${expiryLabel ? ` Valable jusqu'au ${expiryLabel}.` : ""}\n\nVotre certificat est en pièce jointe (PDF).`,
     html: renderEmail({
       siteName: settings.siteName,
       preheader: `Votre bon cadeau de ${amount} € — code ${voucher.code}`,
       bodyHtml,
     }),
+    attachments: pdfAttachment,
   }).catch((error) => console.error("Envoi email bon cadeau échoué:", error));
 
   // Si acheté pour quelqu'un d'autre, l'acheteur reçoit aussi une
@@ -266,6 +199,13 @@ export async function getVoucherByCode(code: string) {
   return prisma.giftVoucher.findUnique({
     where: { code: code.trim().toUpperCase() },
   });
+}
+
+/** Renvoie l'email (avec PDF) pour un bon déjà actif — ex. "je n'ai rien reçu". */
+export async function resendVoucherEmail(code: string) {
+  const voucher = await getVoucherByCode(code);
+  if (!voucher) throw new VoucherNotFoundError();
+  await sendVoucherEmail(voucher);
 }
 
 /** Valide et marque un bon comme utilisé — appelé depuis l'espace restaurateur. */

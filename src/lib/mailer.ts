@@ -8,7 +8,15 @@
 const RESEND_API_URL = "https://api.resend.com/emails";
 const RESEND_BATCH_URL = "https://api.resend.com/emails/batch";
 
-export async function sendMail(params: { to: string; subject: string; text: string; html?: string }) {
+export async function sendMail(params: {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+  // Pièce jointe réelle (ex : certificat de bon cadeau en PDF) — Resend
+  // attend `content` en base64, pas le buffer brut.
+  attachments?: { filename: string; content: string }[];
+}) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("RESEND_API_KEY non configuré — email non envoyé:", params.subject);
@@ -27,6 +35,7 @@ export async function sendMail(params: { to: string; subject: string; text: stri
       subject: params.subject,
       text: params.text,
       html: params.html,
+      attachments: params.attachments,
     }),
   });
 
