@@ -23,9 +23,13 @@ export async function purchaseVoucherAction(
     amount: formData.get("amount"),
     buyerName: formData.get("buyerName"),
     buyerEmail: formData.get("buyerEmail"),
-    recipientName: formData.get("recipientName"),
-    recipientEmail: formData.get("recipientEmail"),
-    message: formData.get("message"),
+    // Les champs destinataire/message sont démontés du formulaire (pas
+    // seulement masqués) quand "cadeau pour quelqu'un d'autre" n'est pas
+    // coché — FormData.get() renvoie alors null, que le schéma (qui
+    // n'accepte que undefined ou "") rejetterait. ?? "" normalise.
+    recipientName: formData.get("recipientName") ?? "",
+    recipientEmail: formData.get("recipientEmail") ?? "",
+    message: formData.get("message") ?? "",
     website: formData.get("website"),
   });
 
