@@ -107,6 +107,84 @@ export async function activateVoucherFromCheckout(sessionId: string, paymentInte
   await sendVoucherEmail(activated);
 }
 
+/**
+ * Carte-cadeau façon "certificat" — cadre doré, sceau, montant encadré,
+ * QR code — pensée table-based / styles inline pour rester fiable dans les
+ * clients mail (pas de web font custom ni de dégradé CSS, juste une pile de
+ * polices serif classiques ; le double-cadre utilise `border-style:double`,
+ * du CSS simple bien supporté partout).
+ */
+function renderVoucherCertificateHtml(params: {
+  logoUrl: string | null;
+  amountLabel: string;
+  code: string;
+  qrImageUrl: string;
+  expiryLabel: string | null;
+  offeredByLabel: string | null;
+  messageQuote: string | null;
+}): string {
+  const { logoUrl, amountLabel, code, qrImageUrl, expiryLabel, offeredByLabel, messageQuote } = params;
+  const serif = "Georgia, 'Times New Roman', serif";
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; background-color:#fdfbf6; border:1px solid #cdb98c;">
+            <tr>
+              <td style="border:3px double #ecdfc2; padding:32px 28px; text-align:center;">
+                ${
+                  logoUrl
+                    ? `<img src="${logoUrl}" width="64" height="64" alt="" style="display:inline-block; width:64px; height:64px; border-radius:50%; border:3px solid #fdfbf6; outline:1px solid #d8c79c; object-fit:cover;" />`
+                    : `<div style="display:inline-block; width:64px; height:64px; line-height:64px; border-radius:50%; background-color:#2b2419; color:#e6d6ae; font-family:${serif}; font-size:20px; font-weight:bold;">19</div>`
+                }
+
+                <div style="margin:18px auto 6px; width:60px; border-top:1px solid #cdb98c;"></div>
+                <p style="margin:0 0 18px; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#a08a5e; font-weight:bold;">Association des 19 Bonnes Tables Sarthoises</p>
+
+                <p style="margin:0 0 4px; font-family:${serif}; font-size:38px; line-height:1.1; color:#2b2419;">Bon cadeau</p>
+                <p style="margin:0 0 22px; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#a08a5e; font-weight:bold;">Valable dans n'importe lequel des 19 restaurants membres</p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #8a6a2f; border-bottom:2px solid #8a6a2f; margin:0 0 22px;">
+                  <tr>
+                    <td align="center" style="padding:14px 0; background-color:#f4ebd7;">
+                      <span style="font-family:${serif}; font-size:44px; font-weight:bold; color:#8a6a2f;">${amountLabel}</span>
+                      <span style="font-family:${serif}; font-size:24px; color:#8a6a2f;"> €</span>
+                    </td>
+                  </tr>
+                </table>
+
+                ${
+                  offeredByLabel
+                    ? `<p style="margin:0 0 18px; font-size:13px; font-style:italic; color:#5c5240;">Offert par ${offeredByLabel}</p>`
+                    : ""
+                }
+                ${
+                  messageQuote
+                    ? `<p style="margin:0 0 22px; padding:14px 16px; background-color:#f4efe3; font-size:13px; font-style:italic; color:#5c5240;">« ${messageQuote} »</p>`
+                    : ""
+                }
+
+                <div style="margin:0 0 20px; height:1px; background-color:#eee6d5;"></div>
+
+                <img src="${qrImageUrl}" alt="QR code du bon cadeau" width="140" height="140" style="display:block; margin:0 auto 14px; border:0;" />
+                <p style="margin:0 0 4px; font-family:'Courier New', monospace; font-size:19px; letter-spacing:2px; color:#2b2419; font-weight:bold;">${code}</p>
+                <p style="margin:0; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#b3a17c; font-weight:bold;">N° de série</p>
+
+                ${
+                  expiryLabel
+                    ? `<p style="margin:18px 0 0; font-size:11px; color:#8d8471;">Valable jusqu'au <strong style="color:#2b2419;">${expiryLabel}</strong></p>`
+                    : ""
+                }
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
 async function sendVoucherEmail(voucher: {
   code: string;
   amountCents: number;
@@ -131,6 +209,7 @@ async function sendVoucherEmail(voucher: {
   // silencieusement les images en data: URI, alors qu'une vraie URL
   // http(s) s'affiche de façon fiable partout.
   const qrImageUrl = absoluteUrl(`/api/gift-vouchers/${voucher.code}/qr`);
+  const logoUrl = settings.logo?.url ?? null;
 
   const bodyHtml = `
     <p style="margin:0 0 16px;">Bonjour${isGift && voucher.recipientName ? " " + voucher.recipientName : ""},</p>
@@ -141,14 +220,17 @@ async function sendVoucherEmail(voucher: {
           : `Merci pour votre achat ! Voici votre bon cadeau de <strong>${amount} €</strong>, utilisable dans n'importe lequel des restaurants membres des ${settings.siteName}.`
       }
     </p>
-    ${voucher.message ? `<p style="margin:0 0 16px; padding:14px; background-color:#faf6ee; border-radius:3px; font-style:italic;">« ${voucher.message} »</p>` : ""}
-    <div style="text-align:center; margin:24px 0;">
-      <img src="${qrImageUrl}" alt="QR code du bon cadeau" width="180" height="180" style="display:block; margin:0 auto 16px; border:0;" />
-      <p style="margin:0; font-family:monospace; font-size:20px; letter-spacing:1px; color:#231e1a; font-weight:bold;">${voucher.code}</p>
-    </div>
+    ${renderVoucherCertificateHtml({
+      logoUrl,
+      amountLabel: amount,
+      code: voucher.code,
+      qrImageUrl,
+      expiryLabel,
+      offeredByLabel: isGift ? voucher.buyerName : null,
+      messageQuote: isGift ? voucher.message : null,
+    })}
     <p style="margin:0 0 8px; font-size:13px; color:#6f6455;">
       Présentez ce code (imprimé ou sur votre téléphone) directement au restaurant de votre choix parmi les membres de l'association.
-      ${expiryLabel ? `Valable jusqu'au ${expiryLabel}.` : ""}
     </p>
     ${emailButton("Voir les restaurants membres", absoluteUrl("/nos-restaurants"))}
   `;
