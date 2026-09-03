@@ -13,11 +13,11 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const unreadMessages = await prisma.contactMessage.count({ where: { status: "UNREAD" } });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-cream-50">
       <AdminSidebar role={session.user.role} />
       <div className="flex-1">
         <AdminTopbar name={session.user.name} unreadMessages={unreadMessages} />
-        <main className="p-6">{children}</main>
+        <main className="p-8">{children}</main>
       </div>
     </div>
   );

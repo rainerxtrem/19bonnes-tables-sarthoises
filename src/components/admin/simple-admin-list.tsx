@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
+import { Pencil, Trash2 } from "lucide-react";
 
 export interface SimpleAdminRow {
   id: string;
@@ -36,38 +37,43 @@ export function SimpleAdminList({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+        <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
           <tr>
             {headers.map((header) => (
-              <th key={header} className="px-3 py-2">
+              <th key={header} className="px-4 py-3">
                 {header}
               </th>
             ))}
-            <th className="px-3 py-2">Actions</th>
+            <th className="px-4 py-3">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-ink-100">
           {rows.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className="transition-colors hover:bg-cream-50/60">
               {row.cells.map((cell, index) => (
                 // eslint-disable-next-line react/no-array-index-key -- l'ordre des cellules est stable par ligne
-                <td key={index} className="px-3 py-2">
+                <td key={index} className="px-4 py-3 text-ink-700">
                   {cell}
                 </td>
               ))}
-              <td className="px-3 py-2">
-                <div className="flex gap-3">
-                  <Link href={row.editHref} className="text-brand hover:underline">
-                    Modifier
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <Link
+                    href={row.editHref}
+                    title="Modifier"
+                    className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-wine-50 hover:text-wine-700"
+                  >
+                    <Pencil className="h-3.5 w-3.5" aria-hidden />
                   </Link>
                   <button
                     disabled={pending === row.id}
                     onClick={() => remove(row)}
-                    className="text-red-600 hover:underline disabled:opacity-50"
+                    title="Supprimer"
+                    className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                   >
-                    Supprimer
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
                 </div>
               </td>
@@ -75,7 +81,7 @@ export function SimpleAdminList({
           ))}
         </tbody>
       </table>
-      {rows.length === 0 ? <div className="p-8 text-center text-sm text-gray-500">{emptyLabel}</div> : null}
+      {rows.length === 0 ? <div className="p-8 text-center text-sm text-ink-400">{emptyLabel}</div> : null}
     </div>
   );
 }

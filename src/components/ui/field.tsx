@@ -8,10 +8,10 @@ import {
 import { cn } from "@/lib/utils/cn";
 
 const FIELD_BASE =
-  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand disabled:bg-gray-100";
+  "w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand disabled:bg-cream-100";
 
 export const Label = ({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label className={cn("mb-1 block text-sm font-medium text-gray-700", className)} {...props} />
+  <label className={cn("mb-1 block text-sm font-medium text-ink-600", className)} {...props} />
 );
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
