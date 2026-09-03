@@ -1,4 +1,3 @@
-import QRCode from "qrcode";
 import { prisma } from "@/lib/db/prisma";
 import { getStripeClient } from "@/lib/stripe";
 import { generateUniqueVoucherCode } from "@/lib/gift-voucher-code";
@@ -126,12 +125,12 @@ async function sendVoucherEmail(voucher: {
     ? voucher.expiresAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : null;
 
-  let qrDataUrl: string | null = null;
-  try {
-    qrDataUrl = await QRCode.toDataURL(voucher.code, { margin: 1, width: 220 });
-  } catch (error) {
-    console.error("Génération QR code échouée:", error);
-  }
+  // Image PNG servie depuis notre propre route (voir
+  // /api/gift-vouchers/[code]/qr) plutôt qu'en data: URI intégré au HTML :
+  // plusieurs clients mail (Gmail, Outlook selon les cas) bloquent
+  // silencieusement les images en data: URI, alors qu'une vraie URL
+  // http(s) s'affiche de façon fiable partout.
+  const qrImageUrl = absoluteUrl(`/api/gift-vouchers/${voucher.code}/qr`);
 
   const bodyHtml = `
     <p style="margin:0 0 16px;">Bonjour${isGift && voucher.recipientName ? " " + voucher.recipientName : ""},</p>
@@ -144,7 +143,7 @@ async function sendVoucherEmail(voucher: {
     </p>
     ${voucher.message ? `<p style="margin:0 0 16px; padding:14px; background-color:#faf6ee; border-radius:3px; font-style:italic;">« ${voucher.message} »</p>` : ""}
     <div style="text-align:center; margin:24px 0;">
-      ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR code du bon cadeau" width="180" height="180" style="display:block; margin:0 auto 16px;" />` : ""}
+      <img src="${qrImageUrl}" alt="QR code du bon cadeau" width="180" height="180" style="display:block; margin:0 auto 16px; border:0;" />
       <p style="margin:0; font-family:monospace; font-size:20px; letter-spacing:1px; color:#231e1a; font-weight:bold;">${voucher.code}</p>
     </div>
     <p style="margin:0 0 8px; font-size:13px; color:#6f6455;">
