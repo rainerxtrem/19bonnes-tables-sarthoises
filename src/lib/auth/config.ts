@@ -32,7 +32,17 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 8,
+    // 180 jours plutôt que 8h : l'espace restaurateur (tablette de salle,
+    // validation des bons cadeaux) doit rester connecté durablement — pas
+    // de reconnexion en plein service. Auth.js écrit la durée du cookie de
+    // session à partir de CETTE seule valeur globale, sans jamais la faire
+    // varier selon le rôle du token (vérifié dans le code source
+    // @auth/core — le callback jwt n'a aucune prise dessus) : impossible
+    // d'avoir un maxAge court pour /admin et long pour /mon-restaurant sans
+    // réécrire nous-mêmes la gestion du cookie de session. Ce choix
+    // s'applique donc à tous les espaces (admin, trésorerie, restaurateur).
+    // La déconnexion explicite (bouton dédié) reste possible à tout moment.
+    maxAge: 60 * 60 * 24 * 180,
   },
   providers: [],
   callbacks: {
