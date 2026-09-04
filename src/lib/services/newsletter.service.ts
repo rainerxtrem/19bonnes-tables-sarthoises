@@ -156,7 +156,7 @@ interface SeasonalOccasion {
   windowDayEnd: number;
 }
 
-const SEASONAL_OCCASIONS: SeasonalOccasion[] = [
+export const SEASONAL_OCCASIONS: SeasonalOccasion[] = [
   {
     key: "noel",
     subject: "🎄 Offrez un bon cadeau pour les fêtes",
@@ -212,6 +212,37 @@ export async function sendSeasonalCampaignsIfDue(): Promise<{ sent: string[] }> 
   }
 
   return { sent };
+}
+
+/**
+ * Rendu d'une newsletter saisonnière sans rien envoyer ni écrire en base —
+ * utilisé pour prévisualiser/tester le contenu réel (voir route de debug
+ * temporaire), sans toucher aux abonnés ni à l'historique des campagnes
+ * (donc sans risque d'interférer avec la déduplication de
+ * sendSeasonalCampaignsIfDue).
+ */
+export async function renderSeasonalCampaignPreview(key: string) {
+  const occasion = SEASONAL_OCCASIONS.find((o) => o.key === key);
+  if (!occasion) throw new Error(`Occasion saisonnière inconnue : ${key}`);
+
+  const settings = await getSiteSettings();
+  const ctaUrl = absoluteUrl("/bon-cadeaux");
+  const ctaLabel = "Offrir un bon cadeau";
+  const bodyHtml = `
+    ${textToParagraphsHtml(occasion.introText)}
+    ${emailButton(ctaLabel, ctaUrl)}
+  `;
+
+  return {
+    subject: occasion.subject,
+    text: `${occasion.introText}\n\n${ctaLabel} : ${ctaUrl}`,
+    html: renderEmail({
+      siteName: settings.siteName,
+      preheader: occasion.introText.slice(0, 140),
+      bodyHtml,
+      footerNote: "Ceci est un aperçu — les vrais abonnés recevront ici un lien de désinscription personnalisé.",
+    }),
+  };
 }
 
 async function sendWelcomeEmail(email: string, unsubscribeToken: string) {
