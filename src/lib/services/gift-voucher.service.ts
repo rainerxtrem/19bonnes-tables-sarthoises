@@ -527,6 +527,27 @@ export async function markRestaurantPayoutsPaid(restaurantId: string, actorUserI
   return result.count;
 }
 
+/** Nombre de bons actifs qui expirent dans les `days` prochains jours — tuile "à surveiller" du tableau de bord. */
+export async function getVouchersExpiringSoonCount(days = 30) {
+  const now = new Date();
+  const limit = new Date(now);
+  limit.setDate(limit.getDate() + days);
+  return prisma.giftVoucher.count({
+    where: { status: "ACTIVE", expiresAt: { gt: now, lte: limit } },
+  });
+}
+
+/** Somme des bons achetés depuis le 1er du mois courant (ACTIFS + UTILISÉS, donc réellement payés). */
+export async function getMonthlySalesCents() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const result = await prisma.giftVoucher.aggregate({
+    where: { purchasedAt: { gte: startOfMonth }, status: { in: ["ACTIVE", "REDEEMED"] } },
+    _sum: { amountCents: true },
+  });
+  return result._sum.amountCents ?? 0;
+}
+
 /** Statistiques bons cadeaux — utilisées par l'admin et l'espace trésorier. */
 export async function getGiftVoucherStats() {
   const vouchers = await prisma.giftVoucher.findMany();

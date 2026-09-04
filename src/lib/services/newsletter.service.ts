@@ -69,11 +69,19 @@ export async function sendCampaign({
   introText,
   articleId,
   actorUserId,
+  // CTA générique (ex. "Offrir un bon cadeau" → /bon-cadeaux) — utilisé
+  // seulement quand aucun articleId n'est fourni, pour les campagnes qui ne
+  // pointent pas vers une actualité (relances saisonnières notamment, voir
+  // sendSeasonalCampaignsIfDue ci-dessous).
+  ctaUrl,
+  ctaLabel,
 }: {
   subject: string;
   introText: string;
   articleId?: string | null;
   actorUserId?: string;
+  ctaUrl?: string;
+  ctaLabel?: string;
 }) {
   const [settings, subscribers, article] = await Promise.all([
     getSiteSettings(),
@@ -84,12 +92,14 @@ export async function sendCampaign({
   ]);
 
   const articleUrl = article ? absoluteUrl(`/actualites/${article.slug}`) : null;
+  const finalCtaUrl = articleUrl ?? ctaUrl ?? null;
+  const finalCtaLabel = articleUrl ? "Lire l'article complet" : (ctaLabel ?? "En savoir plus");
   const bodyHtml = `
     ${textToParagraphsHtml(introText)}
     ${article?.mainImage ? `<img src="${article.mainImage.url}" alt="" style="width:100%; max-width:496px; border-radius:3px; margin:4px 0 16px; display:block;" />` : ""}
-    ${articleUrl ? emailButton("Lire l'article complet", articleUrl) : ""}
+    ${finalCtaUrl ? emailButton(finalCtaLabel, finalCtaUrl) : ""}
   `;
-  const textFooter = articleUrl ? `\n\nLire l'article complet : ${articleUrl}` : "";
+  const textFooter = finalCtaUrl ? `\n\n${finalCtaLabel} : ${finalCtaUrl}` : "";
 
   const emails = subscribers.map((subscriber) => {
     const unsubscribeUrl = absoluteUrl(`/newsletter/desinscription?token=${subscriber.unsubscribeToken}`);
@@ -126,6 +136,82 @@ export async function listCampaigns() {
     orderBy: { sentAt: "desc" },
     include: { article: { select: { title: true, slug: true } }, sentBy: { select: { name: true } } },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Newsletters saisonnières automatiques
+// ---------------------------------------------------------------------------
+
+interface SeasonalOccasion {
+  key: string;
+  subject: string;
+  introText: string;
+  // Fenêtre d'envoi (mois 1-indexé, jours inclusifs) plutôt qu'une date
+  // unique : si le déclencheur externe (cron) ne tourne pas pile ce jour-là
+  // (panne, maintenance...), l'envoi a quand même lieu les jours suivants —
+  // sans jamais doubler, grâce à la vérification "déjà envoyé cette année"
+  // ci-dessous (sur le sujet exact, qui sert de clé de dédoublonnage).
+  windowMonth: number;
+  windowDayStart: number;
+  windowDayEnd: number;
+}
+
+const SEASONAL_OCCASIONS: SeasonalOccasion[] = [
+  {
+    key: "noel",
+    subject: "🎄 Offrez un bon cadeau pour les fêtes",
+    introText:
+      "Le temps des fêtes approche ! Envie d'offrir un moment gourmand à un proche ? Le bon cadeau des 19 Bonnes Tables Sarthoises se glisse sous le sapin en quelques clics, se reçoit par email en quelques secondes, et se déguste dans n'importe lequel des restaurants membres de l'association, partout en Sarthe.",
+    windowMonth: 12,
+    windowDayStart: 1,
+    windowDayEnd: 3,
+  },
+  {
+    key: "saint-valentin",
+    subject: "❤️ Un bon cadeau pour la Saint-Valentin",
+    introText:
+      "La Saint-Valentin approche : et si vous offriez un dîner à deux dans l'un des restaurants membres des 19 Bonnes Tables Sarthoises ? Le bon cadeau s'achète en ligne et se reçoit par email en quelques secondes — plus qu'à choisir la table.",
+    windowMonth: 2,
+    windowDayStart: 1,
+    windowDayEnd: 3,
+  },
+];
+
+/**
+ * Envoie automatiquement les newsletters saisonnières dont la fenêtre est
+ * atteinte et qui n'ont pas déjà été envoyées cette année. Appelée
+ * quotidiennement par un déclencheur externe (voir
+ * /api/cron/seasonal-newsletter) — idempotent, sans risque à appeler
+ * plusieurs fois le même jour ou plusieurs jours de suite dans la fenêtre.
+ */
+export async function sendSeasonalCampaignsIfDue(): Promise<{ sent: string[] }> {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const sent: string[] = [];
+
+  for (const occasion of SEASONAL_OCCASIONS) {
+    const inWindow =
+      now.getMonth() + 1 === occasion.windowMonth &&
+      now.getDate() >= occasion.windowDayStart &&
+      now.getDate() <= occasion.windowDayEnd;
+    if (!inWindow) continue;
+
+    const alreadySent = await prisma.newsletterCampaign.findFirst({
+      where: { subject: occasion.subject, sentAt: { gte: startOfYear } },
+      select: { id: true },
+    });
+    if (alreadySent) continue;
+
+    await sendCampaign({
+      subject: occasion.subject,
+      introText: occasion.introText,
+      ctaUrl: absoluteUrl("/bon-cadeaux"),
+      ctaLabel: "Offrir un bon cadeau",
+    });
+    sent.push(occasion.key);
+  }
+
+  return { sent };
 }
 
 async function sendWelcomeEmail(email: string, unsubscribeToken: string) {

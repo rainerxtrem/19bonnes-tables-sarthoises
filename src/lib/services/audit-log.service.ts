@@ -20,3 +20,21 @@ export async function recordAuditLog(params: {
     },
   });
 }
+
+const AUDIT_LOG_PAGE_SIZE = 50;
+
+/** Journal d'activité admin — pagination simple, le plus récent en premier. */
+export async function listAuditLogs(page = 1) {
+  const skip = (page - 1) * AUDIT_LOG_PAGE_SIZE;
+  const [logs, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: AUDIT_LOG_PAGE_SIZE,
+      include: { user: { select: { name: true, email: true } } },
+    }),
+    prisma.auditLog.count(),
+  ]);
+
+  return { logs, total, page, pageSize: AUDIT_LOG_PAGE_SIZE, pageCount: Math.max(1, Math.ceil(total / AUDIT_LOG_PAGE_SIZE)) };
+}

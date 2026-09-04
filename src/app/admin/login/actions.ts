@@ -2,10 +2,20 @@
 
 import { AuthError } from "next-auth";
 import { signIn } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export type LoginState = { error?: string };
 
+const LOGIN_LIMIT = 3;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
 export async function loginAction(_prevState: LoginState, formData: FormData): Promise<LoginState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  // Compté par email, pas par IP : bloque le bourrage de mot de passe sur
+  // un compte donné, y compris depuis des IP différentes.
+  if (email && !checkRateLimit(`login:admin:${email}`, LOGIN_LIMIT, LOGIN_WINDOW_MS)) {
+    return { error: "Trop de tentatives de connexion. Réessayez dans quelques minutes." };
+  }
   try {
     await signIn("credentials", {
       email: formData.get("email"),

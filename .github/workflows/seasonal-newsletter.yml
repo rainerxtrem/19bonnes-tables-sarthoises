@@ -1,0 +1,26 @@
+name: Newsletter saisonnière
+
+# Même principe que gift-voucher-reminders.yml : Railway ne propose pas de
+# cron pour un service web toujours démarré, GitHub Actions joue ce rôle.
+# Tourne chaque jour mais n'envoie réellement qu'à Noël et à la
+# Saint-Valentin (voir sendSeasonalCampaignsIfDue, idempotent).
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler la route de newsletter saisonnière
+        run: |
+          status=$(curl -s -o response.json -w "%{http_code}" -X POST \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "https://19bonnes-tables-sarthoises.fr/api/cron/seasonal-newsletter")
+          echo "HTTP $status"
+          cat response.json
+          if [ "$status" != "200" ]; then
+            echo "::error::La newsletter saisonnière a échoué (HTTP $status)"
+            exit 1
+          fi

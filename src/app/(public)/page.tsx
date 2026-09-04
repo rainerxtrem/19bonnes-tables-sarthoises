@@ -7,8 +7,9 @@ import { getSiteSettings } from "@/lib/services/settings.service";
 import { RestaurantCard } from "@/components/public/restaurant-card";
 import { RestaurantsMapLoader } from "@/components/public/restaurants-map-loader";
 import { ContactForm } from "@/components/public/contact-form";
+import { NewsletterForm } from "@/components/public/newsletter-form";
 import { Reveal } from "@/components/public/reveal";
-import { ArrowRight, ChefHat, MapPin, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, ChefHat, Mail, MapPin, UtensilsCrossed } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -251,6 +252,38 @@ export default async function HomePage() {
               <ContactForm />
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Newsletter — volontairement visible ici plutôt que réservée au */}
+      {/* pied de page, pour ne pas passer inaperçue */}
+      {/* ---------------------------------------------------------------- */}
+      <section className="bg-ink-950 py-20 text-cream-50">
+        <div className="container">
+          <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+            <Reveal>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-400/10 text-gold-300">
+                <Mail className="h-5 w-5" aria-hidden />
+              </span>
+            </Reveal>
+            <Reveal delay={80}>
+              <h2 className="mt-5 font-display text-3xl text-cream-50 sm:text-4xl">
+                Ne manquez aucune actualité gourmande
+              </h2>
+            </Reveal>
+            <Reveal delay={140}>
+              <p className="mt-4 max-w-md text-sm text-cream-100/70">
+                Recettes de terroir, événements et vie de l&apos;association : recevez nos actualités directement
+                par email, de temps en temps, jamais plus.
+              </p>
+            </Reveal>
+            <Reveal delay={200}>
+              <div className="mt-8 flex w-full justify-center">
+                <NewsletterForm />
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
     </div>

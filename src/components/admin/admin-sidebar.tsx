@@ -19,6 +19,7 @@ import {
   Route,
   Settings,
   ShieldCheck,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -64,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/redirections", label: "Redirections", icon: Route, superAdminOnly: true },
       { href: "/admin/settings", label: "Paramètres", icon: Settings, superAdminOnly: true },
       { href: "/admin/administrateurs", label: "Administrateurs", icon: ShieldCheck, superAdminOnly: true },
+      { href: "/admin/journal", label: "Journal d'activité", icon: ScrollText, superAdminOnly: true },
     ],
   },
 ];
