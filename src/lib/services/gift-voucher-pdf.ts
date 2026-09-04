@@ -226,14 +226,23 @@ export async function generateVoucherPdf(params: {
     doc.font(serif.medium).fontSize(64).fillColor(COLORS.ink).text("Bon-cadeau", MARGIN, 196, { lineBreak: false });
 
     eyebrow(doc, "Valeur", valueBoxX, 196, { size: 8 });
-    doc.moveTo(valueBoxX, 212).lineTo(valueBoxX + valueBoxW, 212).lineWidth(2).strokeColor(COLORS.gold).stroke();
-    doc.rect(valueBoxX, 213, valueBoxW, 44).fill(COLORS.valueBoxBg);
-    doc.moveTo(valueBoxX, 257).lineTo(valueBoxX + valueBoxW, 257).lineWidth(2).strokeColor(COLORS.gold).stroke();
+    const valueBoxY = 212;
+    const valueBoxH = 48;
+    doc.moveTo(valueBoxX, valueBoxY).lineTo(valueBoxX + valueBoxW, valueBoxY).lineWidth(2).strokeColor(COLORS.gold).stroke();
+    doc.rect(valueBoxX, valueBoxY + 1, valueBoxW, valueBoxH).fill(COLORS.valueBoxBg);
     doc
-      .font(serif.bold)
-      .fontSize(36)
-      .fillColor(COLORS.gold)
-      .text(`${amountLabel} €`, valueBoxX, 222, { width: valueBoxW, align: "center" });
+      .moveTo(valueBoxX, valueBoxY + 1 + valueBoxH)
+      .lineTo(valueBoxX + valueBoxW, valueBoxY + 1 + valueBoxH)
+      .lineWidth(2)
+      .strokeColor(COLORS.gold)
+      .stroke();
+    // Centrage vertical mesuré plutôt qu'un décalage fixe — les polices
+    // serif ont un ascender/descender variable, un simple "y milieu" laissait
+    // le montant trop bas dans l'encart selon la police effectivement chargée.
+    doc.font(serif.bold).fontSize(34).fillColor(COLORS.gold);
+    const valueText = `${amountLabel} €`;
+    const valueTextHeight = doc.heightOfString(valueText, { width: valueBoxW, align: "center" });
+    doc.text(valueText, valueBoxX, valueBoxY + 1 + (valueBoxH - valueTextHeight) / 2, { width: valueBoxW, align: "center" });
 
     eyebrow(doc, "À valoir dans l'un des restaurants de l'association", MARGIN, 284, {
       size: 8,
@@ -310,7 +319,7 @@ export async function generateVoucherPdf(params: {
       .fontSize(8)
       .fillColor("#f7f1e2")
       .fillOpacity(0.75)
-      .text("N° DE SÉRIE", RIGHT_X, serialLabelY, { width: RIGHT_WIDTH, align: "center", characterSpacing: 2 });
+      .text("Code du bon", RIGHT_X, serialLabelY, { width: RIGHT_WIDTH, align: "center", characterSpacing: 2 });
     doc.fillOpacity(1);
 
     const serialValueY = serialLabelY + 18;
