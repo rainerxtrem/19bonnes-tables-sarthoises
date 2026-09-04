@@ -25,6 +25,9 @@ export default async function RestaurateurLayout({ children }: { children: React
         </div>
         <nav className="flex items-center gap-5">
           <Link href="/mon-restaurant" className="text-sm text-ink-600 hover:text-wine-700">
+            Accueil
+          </Link>
+          <Link href="/mon-restaurant/fiche" className="text-sm text-ink-600 hover:text-wine-700">
             Ma fiche
           </Link>
           <Link

@@ -70,6 +70,14 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
+      const isTreasuryRoute = pathname.startsWith("/tresorerie") && pathname !== "/tresorerie/login";
+      if (isTreasuryRoute) {
+        if (!auth?.user || auth.user.role !== "TRESORIER") {
+          return NextResponse.redirect(new URL("/tresorerie/login", request.url));
+        }
+        return true;
+      }
+
       return true;
     },
   },

@@ -142,7 +142,6 @@ export function GiftVoucherTable({ rows }: { rows: GiftVoucherRow[] }) {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     {/* Lien de téléchargement de fichier, pas de navigation interne — <a> natif volontaire. */}
-                    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                     <a
                       href={`/api/admin/gift-vouchers/${v.id}/pdf`}
                       title="Télécharger le PDF"

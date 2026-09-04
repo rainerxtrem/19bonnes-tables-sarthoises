@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Gift } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
 import { Reveal } from "@/components/public/reveal";
 import { GiftVoucherForm } from "@/components/public/gift-voucher-form";
 
@@ -23,8 +23,37 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function GiftVoucherPage() {
   const page = await prisma.page.findUnique({ where: { slug: "bon-cadeaux" }, include: { mainImage: true } });
 
+  // Prix libre entre 10 et 500 € (voir giftVoucherPurchaseSchema) : un
+  // AggregateOffer plutôt qu'un Offer à prix fixe, seule forme valide de
+  // schema.org pour une fourchette de prix.
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Bon cadeau — 19 Bonnes Tables Sarthoises",
+    description:
+      "Bon cadeau utilisable dans n'importe lequel des restaurants membres de l'association des 19 Bonnes Tables Sarthoises, livré par email.",
+    image: page?.mainImage?.url,
+    url: absoluteUrl("/bon-cadeaux"),
+    brand: { "@type": "Organization", name: "19 Bonnes Tables Sarthoises" },
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "EUR",
+      lowPrice: "10",
+      highPrice: "500",
+      availability: "https://schema.org/InStock",
+      url: absoluteUrl("/bon-cadeaux"),
+    },
+  };
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Accueil", path: "/" },
+    { name: "Bons cadeaux", path: "/bon-cadeaux" },
+  ]);
+
   return (
     <article>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+
       <section className="border-b border-ink-900/10 bg-cream-100 py-20 sm:py-28">
         <div className="container text-center">
           <Reveal>

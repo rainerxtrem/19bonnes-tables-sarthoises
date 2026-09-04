@@ -363,3 +363,196 @@ export async function generateVoucherPdfById(id: string) {
 
   return { buffer, voucher };
 }
+
+// ---------------------------------------------------------------------------
+// Relances avant expiration
+// ---------------------------------------------------------------------------
+
+// Ordonnés du plus urgent au moins urgent : si un bon est éligible à
+// plusieurs seuils en même temps (ex. tout premier passage du cron, bons
+// déjà à quelques jours de l'échéance), on n'envoie qu'UNE relance — la plus
+// urgente — et on marque les seuils moins urgents comme traités sans envoi,
+// pour ne jamais spammer plusieurs mails le même jour pour le même bon.
+const REMINDER_THRESHOLDS = [
+  { field: "reminder7dSentAt", days: 7, label: "dans moins d'une semaine" },
+  { field: "reminder1moSentAt", days: 30, label: "dans moins d'un mois" },
+  { field: "reminder3moSentAt", days: 90, label: "dans moins de 3 mois" },
+] as const satisfies readonly { field: "reminder7dSentAt" | "reminder1moSentAt" | "reminder3moSentAt"; days: number; label: string }[];
+
+/**
+ * Relance les bénéficiaires de bons actifs proches de l'expiration.
+ * Idempotent (voir `reminder*SentAt`) — peut être appelée aussi souvent que
+ * nécessaire par le déclencheur externe (cron), un seul envoi par seuil et
+ * par bon. Retourne le nombre de mails envoyés, pour le suivi côté appelant.
+ */
+export async function sendExpiryReminders(): Promise<{ sent: number; checked: number }> {
+  const now = new Date();
+  const maxWindow = new Date(now);
+  maxWindow.setDate(maxWindow.getDate() + REMINDER_THRESHOLDS[REMINDER_THRESHOLDS.length - 1]!.days);
+
+  const candidates = await prisma.giftVoucher.findMany({
+    where: {
+      status: "ACTIVE",
+      expiresAt: { gt: now, lte: maxWindow },
+      OR: REMINDER_THRESHOLDS.map((t) => ({ [t.field]: null })),
+    },
+  });
+
+  const settings = await getSiteSettings();
+  let sent = 0;
+
+  for (const voucher of candidates) {
+    if (!voucher.expiresAt) continue;
+    const daysLeft = (voucher.expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000);
+    const due = REMINDER_THRESHOLDS.filter((t) => daysLeft <= t.days && voucher[t.field] === null);
+    if (due.length === 0) continue;
+
+    const mostUrgent = due[0]!; // due.length > 0 vérifié juste au-dessus
+    const data: Record<string, Date> = {};
+    for (const t of due) data[t.field] = now;
+
+    try {
+      await sendVoucherReminderEmail(voucher, settings, mostUrgent.label);
+      sent++;
+    } catch (error) {
+      console.error(`Relance bon cadeau ${voucher.code} échouée:`, error);
+    }
+    // Marqué traité même en cas d'échec d'envoi : on retentera au prochain
+    // seuil plus urgent plutôt que de re-tenter en boucle sur celui-ci.
+    await prisma.giftVoucher.update({ where: { id: voucher.id }, data });
+  }
+
+  return { sent, checked: candidates.length };
+}
+
+async function sendVoucherReminderEmail(
+  voucher: { code: string; amountCents: number; buyerName: string; buyerEmail: string; recipientEmail: string | null; expiresAt: Date | null },
+  settings: Awaited<ReturnType<typeof getSiteSettings>>,
+  urgencyLabel: string
+) {
+  const amount = (voucher.amountCents / 100).toFixed(2);
+  const to = voucher.recipientEmail || voucher.buyerEmail;
+  const expiryLabel = voucher.expiresAt
+    ? voucher.expiresAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Bonjour,</p>
+    <p style="margin:0 0 16px;">
+      Votre bon cadeau de <strong>${amount} €</strong> (code <strong>${voucher.code}</strong>) expire ${urgencyLabel}${
+        expiryLabel ? `, le <strong>${expiryLabel}</strong>` : ""
+      }. Pensez à le présenter dans l'un des restaurants membres des ${settings.siteName} avant cette date.
+    </p>
+    ${emailButton("Voir les restaurants membres", absoluteUrl("/nos-restaurants"))}
+  `;
+
+  await sendMail({
+    to,
+    subject: `Votre bon cadeau expire ${urgencyLabel}`,
+    text: `Votre bon cadeau de ${amount} € (code ${voucher.code}) expire ${urgencyLabel}${expiryLabel ? `, le ${expiryLabel}` : ""}. Utilisable dans n'importe lequel des restaurants membres des ${settings.siteName}.`,
+    html: renderEmail({
+      siteName: settings.siteName,
+      preheader: `Votre bon cadeau de ${amount} € expire bientôt`,
+      bodyHtml,
+    }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Trésorerie — versements aux restaurants
+// ---------------------------------------------------------------------------
+
+/**
+ * Un restaurant qui valide un bon cadeau en salle avance sa valeur ; à
+ * verser ensuite par l'association. Regroupe les bons REDEEMED par
+ * restaurant, avec le total encore dû (payoutStatus = PENDING).
+ */
+export async function listRestaurantPayouts() {
+  const redeemed = await prisma.giftVoucher.findMany({
+    where: { status: "REDEEMED" },
+    include: { redeemedAtRestaurant: { select: { id: true, name: true, slug: true } } },
+    orderBy: { redeemedAt: "desc" },
+  });
+
+  const byRestaurant = new Map<
+    string,
+    {
+      restaurantId: string;
+      restaurantName: string;
+      pendingCents: number;
+      paidCents: number;
+      vouchers: typeof redeemed;
+    }
+  >();
+
+  for (const voucher of redeemed) {
+    if (!voucher.redeemedAtRestaurant) continue; // ne devrait pas arriver pour un bon REDEEMED, garde défensive
+    const key = voucher.redeemedAtRestaurant.id;
+    const entry = byRestaurant.get(key) ?? {
+      restaurantId: voucher.redeemedAtRestaurant.id,
+      restaurantName: voucher.redeemedAtRestaurant.name,
+      pendingCents: 0,
+      paidCents: 0,
+      vouchers: [] as typeof redeemed,
+    };
+    if (voucher.payoutStatus === "PAID") entry.paidCents += voucher.amountCents;
+    else entry.pendingCents += voucher.amountCents;
+    entry.vouchers.push(voucher);
+    byRestaurant.set(key, entry);
+  }
+
+  return Array.from(byRestaurant.values()).sort((a, b) => b.pendingCents - a.pendingCents);
+}
+
+/** Change le statut de versement d'un bon donné (ADMIN ou TRESORIER). */
+export async function setVoucherPayoutStatus(id: string, paid: boolean, actorUserId: string) {
+  const voucher = await getVoucherById(id);
+  if (voucher.status !== "REDEEMED") {
+    throw new VoucherNotRedeemableError(voucher.status);
+  }
+  return prisma.giftVoucher.update({
+    where: { id },
+    data: paid
+      ? { payoutStatus: "PAID", paidAt: new Date(), paidByUserId: actorUserId }
+      : { payoutStatus: "PENDING", paidAt: null, paidByUserId: null },
+  });
+}
+
+/** Marque en une fois tous les bons en attente de versement d'un restaurant. */
+export async function markRestaurantPayoutsPaid(restaurantId: string, actorUserId: string) {
+  const result = await prisma.giftVoucher.updateMany({
+    where: { status: "REDEEMED", redeemedAtRestaurantId: restaurantId, payoutStatus: "PENDING" },
+    data: { payoutStatus: "PAID", paidAt: new Date(), paidByUserId: actorUserId },
+  });
+  return result.count;
+}
+
+/** Statistiques bons cadeaux — utilisées par l'admin et l'espace trésorier. */
+export async function getGiftVoucherStats() {
+  const vouchers = await prisma.giftVoucher.findMany();
+
+  const byStatus = { PENDING_PAYMENT: 0, ACTIVE: 0, REDEEMED: 0, EXPIRED: 0, CANCELLED: 0 } satisfies Record<GiftVoucherStatus, number>;
+  let soldCents = 0; // ACTIVE + REDEEMED : bons effectivement payés
+  let redeemedCents = 0;
+  let pendingPayoutCents = 0;
+  let paidPayoutCents = 0;
+
+  for (const v of vouchers) {
+    byStatus[v.status]++;
+    if (v.status === "ACTIVE" || v.status === "REDEEMED") soldCents += v.amountCents;
+    if (v.status === "REDEEMED") {
+      redeemedCents += v.amountCents;
+      if (v.payoutStatus === "PAID") paidPayoutCents += v.amountCents;
+      else pendingPayoutCents += v.amountCents;
+    }
+  }
+
+  return {
+    total: vouchers.length,
+    byStatus,
+    soldCents,
+    redeemedCents,
+    pendingPayoutCents,
+    paidPayoutCents,
+  };
+}

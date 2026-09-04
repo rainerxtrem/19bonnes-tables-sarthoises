@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { listPublishedRestaurants } from "@/lib/services/restaurant.service";
 import { RestaurantDirectory } from "@/components/public/restaurant-directory";
 import { Reveal } from "@/components/public/reveal";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +16,26 @@ export const metadata: Metadata = buildMetadata({
 export default async function NosRestaurantsPage() {
   const restaurants = await listPublishedRestaurants();
 
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: restaurants.map((r, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: absoluteUrl(`/${r.slug}`),
+      name: r.name,
+    })),
+  };
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Accueil", path: "/" },
+    { name: "Nos restaurants", path: "/nos-restaurants" },
+  ]);
+
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+
       <section className="border-b border-ink-900/10 bg-cream-100 py-20 sm:py-28">
         <div className="container text-center">
           <Reveal>

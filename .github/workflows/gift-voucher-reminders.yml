@@ -1,0 +1,27 @@
+name: Relances bons cadeaux
+
+# Pas de cron interne côté app (Railway ne propose pas de planification pour
+# un service web toujours démarré sans le scinder en un service dédié) —
+# GitHub Actions, gratuit sur ce repo, joue ce rôle à la place. Voir
+# src/app/api/cron/gift-voucher-reminders/route.ts pour la logique.
+on:
+  schedule:
+    # 8h UTC ≈ 9h-10h heure de Paris selon la saison.
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler la route de relance
+        run: |
+          status=$(curl -s -o response.json -w "%{http_code}" -X POST \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "https://19bonnes-tables-sarthoises.fr/api/cron/gift-voucher-reminders")
+          echo "HTTP $status"
+          cat response.json
+          if [ "$status" != "200" ]; then
+            echo "::error::La relance a échoué (HTTP $status)"
+            exit 1
+          fi

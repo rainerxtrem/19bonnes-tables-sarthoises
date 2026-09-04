@@ -17,6 +17,10 @@ enum Role {
   // Accès restreint à la fiche d'un seul restaurant (voir /mon-restaurant) :
   // gère son propre restaurant et sa propre galerie, rien d'autre.
   RESTAURATEUR
+  // Accès restreint à la trésorerie des bons cadeaux (voir /tresorerie) :
+  // suivi des sommes à verser aux restaurants et de leur statut de
+  // versement, plus les statistiques bons cadeaux. Rien d'autre côté CMS.
+  TRESORIER
 }
 
 enum PublishStatus {
@@ -63,11 +67,12 @@ model User {
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
-  articles            Article[]
-  uploadedMedia       Media[]
-  auditLogs           AuditLog[]
-  newsletterCampaigns NewsletterCampaign[]
+  articles             Article[]
+  uploadedMedia        Media[]
+  auditLogs            AuditLog[]
+  newsletterCampaigns  NewsletterCampaign[]
   redeemedGiftVouchers GiftVoucher[]
+  paidGiftVouchers     GiftVoucher[]        @relation("GiftVoucherPaidBy")
 
   @@map("users")
 }
@@ -93,19 +98,19 @@ model Media {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  restaurantImages  RestaurantImage[]
-  restaurantMainFor Restaurant[]      @relation("RestaurantMainImage")
-  restaurantOgFor   Restaurant[]      @relation("RestaurantOgImage")
-  pageMainFor       Page[]            @relation("PageMainImage")
-  pageOgFor         Page[]            @relation("PageOgImage")
-  articleMainFor    Article[]         @relation("ArticleMainImage")
-  articleOgFor      Article[]         @relation("ArticleOgImage")
-  boardMemberFor    BoardMember[]
-  partnerLogoFor    Partner[]
-  galleryItems      GalleryItem[]
-  settingsLogoFor   SiteSetting[]     @relation("SettingsLogo")
-  settingsFaviconFor SiteSetting[]    @relation("SettingsFavicon")
-  settingsOgFor     SiteSetting[]     @relation("SettingsOgImage")
+  restaurantImages   RestaurantImage[]
+  restaurantMainFor  Restaurant[]      @relation("RestaurantMainImage")
+  restaurantOgFor    Restaurant[]      @relation("RestaurantOgImage")
+  pageMainFor        Page[]            @relation("PageMainImage")
+  pageOgFor          Page[]            @relation("PageOgImage")
+  articleMainFor     Article[]         @relation("ArticleMainImage")
+  articleOgFor       Article[]         @relation("ArticleOgImage")
+  boardMemberFor     BoardMember[]
+  partnerLogoFor     Partner[]
+  galleryItems       GalleryItem[]
+  settingsLogoFor    SiteSetting[]     @relation("SettingsLogo")
+  settingsFaviconFor SiteSetting[]     @relation("SettingsFavicon")
+  settingsOgFor      SiteSetting[]     @relation("SettingsOgImage")
 
   @@index([type])
   @@map("media")
@@ -153,10 +158,10 @@ model Restaurant {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  images       RestaurantImage[]
-  boardMembers BoardMember[]
-  galleryAlbum GalleryAlbum?
-  users        User[]
+  images               RestaurantImage[]
+  boardMembers         BoardMember[]
+  galleryAlbum         GalleryAlbum?
+  users                User[]
   redeemedGiftVouchers GiftVoucher[]
 
   @@index([status, order])
@@ -179,21 +184,28 @@ enum GiftVoucherStatus {
   CANCELLED
 }
 
+// Suivi du remboursement au restaurant qui a validé le bon — indépendant du
+// statut du bon lui-même (voir GiftVoucher.payoutStatus).
+enum GiftVoucherPayoutStatus {
+  PENDING
+  PAID
+}
+
 model GiftVoucher {
-  id            String            @id @default(cuid())
+  id          String            @id @default(cuid())
   // Code lisible communiqué au client (ex. "19BT-XXXX-XXXX"), aussi encodé
   // dans le QR code envoyé par email.
-  code          String            @unique
-  amountCents   Int
-  status        GiftVoucherStatus @default(PENDING_PAYMENT)
+  code        String            @unique
+  amountCents Int
+  status      GiftVoucherStatus @default(PENDING_PAYMENT)
 
   buyerName      String
   buyerEmail     String
   recipientName  String?
   recipientEmail String?
-  message        String?          @db.Text
+  message        String? @db.Text
 
-  stripeSessionId       String?   @unique
+  stripeSessionId       String? @unique
   stripePaymentIntentId String?
 
   purchasedAt DateTime?
@@ -205,10 +217,24 @@ model GiftVoucher {
   redeemedAtRestaurantId String?
   redeemedAtRestaurant   Restaurant? @relation(fields: [redeemedAtRestaurantId], references: [id], onDelete: SetNull)
 
+  // Trésorerie : le restaurant qui a validé le bon doit être remboursé de
+  // sa valeur par l'association — suivi indépendant du statut du bon.
+  payoutStatus GiftVoucherPayoutStatus @default(PENDING)
+  paidAt       DateTime?
+  paidByUserId String?
+  paidByUser   User?                   @relation("GiftVoucherPaidBy", fields: [paidByUserId], references: [id], onDelete: SetNull)
+
+  // Relances d'expiration déjà envoyées (évite les doublons si le cron
+  // tourne plus d'une fois dans la fenêtre) — voir gift-voucher-reminders.
+  reminder3moSentAt DateTime?
+  reminder1moSentAt DateTime?
+  reminder7dSentAt  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([redeemedAtRestaurantId, payoutStatus])
   @@map("gift_vouchers")
 }
 
@@ -455,26 +481,26 @@ model NewsletterSubscriber {
 // ---------------------------------------------------------------------------
 
 model SiteSetting {
-  id                     String   @id @default("singleton")
-  siteName               String   @default("19 Bonnes Tables Sarthoises")
-  siteDescription        String?  @db.Text
-  logoId                 String?
-  logo                   Media?   @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: SetNull)
-  faviconId              String?
-  favicon                Media?   @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
-  contactEmail           String?
-  contactPhone           String?
-  address                String?
-  facebookUrl            String?
-  instagramUrl           String?
-  linkedinUrl            String?
-  seoDefaultTitle        String?
-  seoDefaultDescription  String?  @db.Text
-  ogDefaultImageId       String?
-  ogDefaultImage         Media?   @relation("SettingsOgImage", fields: [ogDefaultImageId], references: [id], onDelete: SetNull)
-  footerText             String?  @db.Text
-  gtmId                  String?
-  updatedAt              DateTime @updatedAt
+  id                    String   @id @default("singleton")
+  siteName              String   @default("19 Bonnes Tables Sarthoises")
+  siteDescription       String?  @db.Text
+  logoId                String?
+  logo                  Media?   @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  faviconId             String?
+  favicon               Media?   @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
+  contactEmail          String?
+  contactPhone          String?
+  address               String?
+  facebookUrl           String?
+  instagramUrl          String?
+  linkedinUrl           String?
+  seoDefaultTitle       String?
+  seoDefaultDescription String?  @db.Text
+  ogDefaultImageId      String?
+  ogDefaultImage        Media?   @relation("SettingsOgImage", fields: [ogDefaultImageId], references: [id], onDelete: SetNull)
+  footerText            String?  @db.Text
+  gtmId                 String?
+  updatedAt             DateTime @updatedAt
 
   @@map("site_settings")
 }

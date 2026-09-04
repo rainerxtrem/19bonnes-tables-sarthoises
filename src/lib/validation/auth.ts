@@ -17,7 +17,7 @@ export const createUserSchema = z
       .regex(/[a-z]/, "Le mot de passe doit contenir une minuscule")
       .regex(/[A-Z]/, "Le mot de passe doit contenir une majuscule")
       .regex(/[0-9]/, "Le mot de passe doit contenir un chiffre"),
-    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR"]),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR", "TRESORIER"]),
     // Requis uniquement pour un compte RESTAURATEUR — voir superRefine.
     restaurantId: z.string().cuid().optional().nullable(),
   })
@@ -38,7 +38,7 @@ export const updateUserSchema = z
     name: z.string().trim().min(2, "Nom trop court").max(120),
     email: z.string().trim().toLowerCase().email("Adresse email invalide"),
     password: createUserSchema.innerType().shape.password.optional(),
-    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR"]),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "RESTAURATEUR", "TRESORIER"]),
     restaurantId: z.string().cuid().optional().nullable(),
     isActive: z.boolean(),
   })

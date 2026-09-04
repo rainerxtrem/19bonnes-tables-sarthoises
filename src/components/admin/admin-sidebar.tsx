@@ -12,6 +12,7 @@ import {
   Users,
   Handshake,
   Gift,
+  Wallet,
   Mail,
   Send,
   Menu,
@@ -46,6 +47,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/bureau", label: "Bureau", icon: Users },
       { href: "/admin/partenaires", label: "Partenaires", icon: Handshake },
       { href: "/admin/bon-cadeaux", label: "Bons cadeaux", icon: Gift },
+      { href: "/admin/tresorerie", label: "Trésorerie", icon: Wallet },
     ],
   },
   {

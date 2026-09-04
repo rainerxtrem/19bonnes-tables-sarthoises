@@ -13,7 +13,7 @@ interface UserRow {
   id: string;
   name: string;
   email: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "RESTAURATEUR";
+  role: "SUPER_ADMIN" | "ADMIN" | "RESTAURATEUR" | "TRESORIER";
   isActive: boolean;
   restaurantId: string | null;
   restaurant: { name: string } | null;
@@ -28,6 +28,7 @@ const ROLE_LABELS: Record<UserRow["role"], string> = {
   SUPER_ADMIN: "Super admin",
   ADMIN: "Admin",
   RESTAURATEUR: "Restaurateur",
+  TRESORIER: "Trésorier",
 };
 
 export function UserManager({
@@ -159,6 +160,7 @@ export function UserManager({
             <option value="ADMIN">Admin (gestion des contenus)</option>
             <option value="SUPER_ADMIN">Super admin (accès total)</option>
             <option value="RESTAURATEUR">Restaurateur (une seule fiche)</option>
+            <option value="TRESORIER">Trésorier (versements bons cadeaux)</option>
           </Select>
         </FormField>
         {selectedRole === "RESTAURATEUR" ? (

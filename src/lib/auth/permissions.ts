@@ -12,6 +12,10 @@ import { auth } from "@/lib/auth";
  */
 const SETTINGS_ROLES: Role[] = ["SUPER_ADMIN"];
 const CONTENT_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN"];
+// Trésorerie des bons cadeaux : accessible aux gestionnaires de contenu
+// (l'admin doit pouvoir tout faire aussi, voir demande explicite) ET au
+// rôle TRESORIER, dédié, qui n'a accès à rien d'autre du CMS.
+const TREASURY_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "TRESORIER"];
 
 export class UnauthorizedError extends Error {
   constructor(message = "Authentification requise") {
@@ -46,6 +50,15 @@ export async function requireContentAccess() {
 export async function requireSuperAdmin() {
   const session = await requireSession();
   if (!SETTINGS_ROLES.includes(session.user.role)) {
+    throw new ForbiddenError();
+  }
+  return session;
+}
+
+/** Trésorerie : liste des versements dus aux restaurants + statistiques bons cadeaux. */
+export async function requireTreasuryAccess() {
+  const session = await requireSession();
+  if (!TREASURY_ROLES.includes(session.user.role)) {
     throw new ForbiddenError();
   }
   return session;
