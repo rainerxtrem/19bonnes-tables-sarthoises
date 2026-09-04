@@ -6,7 +6,8 @@ import { renderEmail, emailButton } from "@/lib/email-template";
 import { absoluteUrl } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/services/settings.service";
 import { generateVoucherPdf } from "@/lib/services/gift-voucher-pdf";
-import type { GiftVoucherPurchaseInput } from "@/lib/validation/gift-voucher";
+import type { GiftVoucherPurchaseInput, AdminGiftVoucherCreateInput } from "@/lib/validation/gift-voucher";
+import type { GiftVoucherStatus } from "@prisma/client";
 
 // Durée de validité légale usuelle pour un bon d'achat/carte cadeau en
 // France (pratique courante — voir mentions légales pour le détail).
@@ -108,6 +109,43 @@ export async function activateVoucherFromCheckout(sessionId: string, paymentInte
   await sendVoucherEmail(activated);
 }
 
+/**
+ * Création manuelle depuis l'admin — pas de paiement Stripe (remise en
+ * main propre, geste commercial, vente hors ligne, etc.). Le bon est actif
+ * immédiatement, avec la même durée de validité que les bons achetés en
+ * ligne. `sendEmail` est un choix explicite : un bon peut être créé sans
+ * envoi immédiat (imprimé et remis physiquement), l'admin pourra toujours
+ * le renvoyer plus tard.
+ */
+export async function createVoucherManually(input: AdminGiftVoucherCreateInput) {
+  const code = await generateUniqueVoucherCode();
+  const amountCents = Math.round(input.amount * 100);
+  const now = new Date();
+  const expiresAt = new Date(now);
+  expiresAt.setMonth(expiresAt.getMonth() + VALIDITY_MONTHS);
+
+  const voucher = await prisma.giftVoucher.create({
+    data: {
+      code,
+      amountCents,
+      status: "ACTIVE",
+      buyerName: input.buyerName,
+      buyerEmail: input.buyerEmail,
+      recipientName: input.recipientName || null,
+      recipientEmail: input.recipientEmail || null,
+      message: input.message || null,
+      purchasedAt: now,
+      expiresAt,
+    },
+  });
+
+  if (input.sendEmail) {
+    await sendVoucherEmail(voucher);
+  }
+
+  return voucher;
+}
+
 async function sendVoucherEmail(voucher: {
   code: string;
   amountCents: number;
@@ -140,6 +178,8 @@ async function sendVoucherEmail(voucher: {
       buyerName: voucher.buyerName,
       recipientName: isGift ? voucher.recipientName : null,
       logoUrl,
+      siteName: settings.siteName,
+      contactEmail: settings.contactEmail,
     });
     pdfAttachment = [{ filename: `bon-cadeau-${voucher.code}.pdf`, content: pdfBuffer.toString("base64") }];
   } catch (error) {
@@ -247,4 +287,79 @@ export async function listVouchersAdmin() {
       redeemedByUser: { select: { name: true } },
     },
   });
+}
+
+export async function getVoucherById(id: string) {
+  const voucher = await prisma.giftVoucher.findUnique({ where: { id } });
+  if (!voucher) throw new VoucherNotFoundError();
+  return voucher;
+}
+
+/** Renvoie l'email (avec PDF) pour un bon donné — utilisé par l'admin (bouton "Renvoyer"). */
+export async function resendVoucherEmailById(id: string) {
+  const voucher = await getVoucherById(id);
+  await sendVoucherEmail(voucher);
+}
+
+/**
+ * Change le statut d'un bon depuis l'admin (correction manuelle — ex.
+ * annuler un bon, forcer une validation en cas de souci technique en
+ * salle, ou réactiver un bon expiré par erreur). Contrairement à
+ * `redeemVoucher`, aucun contrôle de transition n'est appliqué : c'est un
+ * outil de correction réservé aux gestionnaires de contenu.
+ */
+export async function setVoucherStatus(id: string, status: GiftVoucherStatus) {
+  const voucher = await getVoucherById(id);
+
+  const data: Parameters<typeof prisma.giftVoucher.update>[0]["data"] = { status };
+
+  if (status === "REDEEMED" && voucher.status !== "REDEEMED") {
+    data.redeemedAt = new Date();
+    // Pas de restaurant/agent associé : validation manuelle depuis l'admin,
+    // pas un scan en salle.
+    data.redeemedByUserId = null;
+    data.redeemedAtRestaurantId = null;
+  } else if (status !== "REDEEMED" && voucher.status === "REDEEMED") {
+    data.redeemedAt = null;
+    data.redeemedByUserId = null;
+    data.redeemedAtRestaurantId = null;
+  }
+
+  if (status === "ACTIVE" && !voucher.purchasedAt) {
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setMonth(expiresAt.getMonth() + VALIDITY_MONTHS);
+    data.purchasedAt = now;
+    data.expiresAt = expiresAt;
+  }
+
+  return prisma.giftVoucher.update({ where: { id }, data });
+}
+
+export async function deleteVoucher(id: string) {
+  await getVoucherById(id);
+  await prisma.giftVoucher.delete({ where: { id } });
+}
+
+/** Génère le PDF du certificat pour un bon existant — téléchargement admin. */
+export async function generateVoucherPdfById(id: string) {
+  const voucher = await getVoucherById(id);
+  const settings = await getSiteSettings();
+  const isGift = Boolean(voucher.recipientEmail && voucher.recipientEmail !== voucher.buyerEmail);
+  const expiryLabel = voucher.expiresAt
+    ? voucher.expiresAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  const buffer = await generateVoucherPdf({
+    amountLabel: (voucher.amountCents / 100).toFixed(2),
+    code: voucher.code,
+    expiryLabel,
+    buyerName: voucher.buyerName,
+    recipientName: isGift ? voucher.recipientName : null,
+    logoUrl: settings.logo?.url ?? null,
+    siteName: settings.siteName,
+    contactEmail: settings.contactEmail,
+  });
+
+  return { buffer, voucher };
 }

@@ -1,8 +1,9 @@
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Download, Plus } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
 import { PageForm } from "@/components/admin/page-form";
 import { listVouchersAdmin } from "@/lib/services/gift-voucher.service";
-import { StatusBadge as GiftVoucherStatusBadge } from "@/components/admin/gift-voucher-status-badge";
+import { GiftVoucherTable, type GiftVoucherRow } from "@/components/admin/gift-voucher-table";
 
 export const metadata = { title: "Bons cadeaux | Administration" };
 
@@ -18,6 +19,22 @@ export default async function AdminBonCadeauxPage() {
     .filter((v) => v.status === "ACTIVE" || v.status === "REDEEMED")
     .reduce((sum, v) => sum + v.amountCents, 0);
 
+  // Dates non sérialisables telles quelles à travers la frontière
+  // Server → Client Component : converties en ISO string ici.
+  const rows: GiftVoucherRow[] = vouchers.map((v) => ({
+    id: v.id,
+    code: v.code,
+    amountCents: v.amountCents,
+    status: v.status,
+    buyerName: v.buyerName,
+    buyerEmail: v.buyerEmail,
+    recipientName: v.recipientName,
+    recipientEmail: v.recipientEmail,
+    purchasedAt: v.purchasedAt?.toISOString() ?? null,
+    redeemedAt: v.redeemedAt?.toISOString() ?? null,
+    redeemedAtRestaurantName: v.redeemedAtRestaurant?.name ?? null,
+  }));
+
   return (
     <div className="space-y-10">
       <div>
@@ -29,83 +46,27 @@ export default async function AdminBonCadeauxPage() {
               utilisé{redeemedCount > 1 ? "s" : ""} · {(totalSoldCents / 100).toFixed(2)} € vendus au total
             </p>
           </div>
-          {/* Lien de téléchargement de fichier, pas de navigation interne — <a> natif volontaire. */}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a
-            href="/api/admin/gift-vouchers/export"
-            className="inline-flex items-center gap-2 rounded-md border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-cream-50"
-          >
-            <Download className="h-4 w-4" aria-hidden />
-            Exporter en CSV
-          </a>
+          <div className="flex items-center gap-3">
+            {/* Lien de téléchargement de fichier, pas de navigation interne — <a> natif volontaire. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
+              href="/api/admin/gift-vouchers/export"
+              className="inline-flex items-center gap-2 rounded-md border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-cream-50"
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Exporter en CSV
+            </a>
+            <Link
+              href="/admin/bon-cadeaux/new"
+              className="inline-flex items-center gap-2 rounded-sm bg-wine-700 px-4 py-2 text-sm font-medium text-cream-50 transition-colors hover:bg-wine-800"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Nouveau bon cadeau
+            </Link>
+          </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
-              <tr>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Montant</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3">Acheteur</th>
-                <th className="px-4 py-3">Bénéficiaire</th>
-                <th className="px-4 py-3">Acheté le</th>
-                <th className="px-4 py-3">Utilisé le / où</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-100">
-              {vouchers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-ink-400">
-                    Aucun bon cadeau pour le moment.
-                  </td>
-                </tr>
-              ) : (
-                vouchers.map((v) => (
-                  <tr key={v.id} className="transition-colors hover:bg-cream-50/60">
-                    <td className="px-4 py-3 font-mono text-xs text-ink-700">{v.code}</td>
-                    <td className="px-4 py-3 font-medium text-ink-900">{(v.amountCents / 100).toFixed(2)} €</td>
-                    <td className="px-4 py-3">
-                      <GiftVoucherStatusBadge status={v.status} />
-                    </td>
-                    <td className="px-4 py-3 text-ink-500">
-                      {v.buyerName}
-                      <br />
-                      <span className="text-xs">{v.buyerEmail}</span>
-                    </td>
-                    <td className="px-4 py-3 text-ink-500">
-                      {v.recipientEmail ? (
-                        <>
-                          {v.recipientName || "—"}
-                          <br />
-                          <span className="text-xs">{v.recipientEmail}</span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-ink-500">
-                      {v.purchasedAt
-                        ? v.purchasedAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-ink-500">
-                      {v.redeemedAt ? (
-                        <>
-                          {v.redeemedAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                          <br />
-                          <span className="text-xs">{v.redeemedAtRestaurant?.name ?? "—"}</span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <GiftVoucherTable rows={rows} />
       </div>
 
       <div>

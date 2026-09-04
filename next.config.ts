@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // standalone et la génération de PDF (bons cadeaux) échoue en prod.
   outputFileTracingIncludes: {
     "/api/webhooks/stripe": ["./node_modules/pdfkit/js/data/**"],
+    "/api/admin/gift-vouchers/[id]/pdf": ["./node_modules/pdfkit/js/data/**"],
   },
   images: {
     remotePatterns: [

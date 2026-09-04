@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils/cn";
 import type { GiftVoucherStatus } from "@prisma/client";
 
-const STATUS_LABELS: Record<GiftVoucherStatus, string> = {
+export const STATUS_LABELS: Record<GiftVoucherStatus, string> = {
   PENDING_PAYMENT: "Paiement en attente",
   ACTIVE: "Actif",
   REDEEMED: "Utilisé",

@@ -2,11 +2,10 @@ import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 
 // Génère le certificat de bon cadeau en PDF (deux volets : détails du bon à
-// gauche, authentification/QR à droite) — reproduit fidèlement la maquette
-// "Carte Cadeau" (cadre double, sceau doré, encart valeur, volet
-// d'authentification dégradé). pdfkit plutôt qu'un rendu HTML→PDF
-// (Puppeteer) : pur JS, aucun binaire Chromium à embarquer dans l'image
-// Docker Railway.
+// gauche, authentification/QR à droite, suivi d'une page de conditions
+// d'utilisation) — reproduit fidèlement la maquette "Carte Cadeau".
+// pdfkit plutôt qu'un rendu HTML→PDF (Puppeteer) : pur JS, aucun binaire
+// Chromium à embarquer dans l'image Docker Railway.
 
 const PAGE_WIDTH = 1000;
 const PAGE_HEIGHT = 520;
@@ -28,6 +27,58 @@ const COLORS = {
   ink: "#2b2419",
   inkSoft: "#8d8471",
 };
+
+// ---------------------------------------------------------------------------
+// Police "Cormorant Garamond" — récupérée depuis Google Fonts (gstatic, URLs
+// stables et pérennes) à la volée puis mise en cache en mémoire pour le
+// process : pdfkit/fontkit sait charger un buffer WOFF directement (vérifié),
+// pas besoin de le convertir ni de le committer dans le repo. En cas d'échec
+// réseau, on retombe simplement sur les polices Times intégrées à pdfkit.
+// ---------------------------------------------------------------------------
+const FONT_URLS: Record<"medium" | "semibold" | "bold", string> = {
+  medium:
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_s06GnA.woff",
+  semibold:
+    "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_iE9GnA.woff",
+  bold: "https://fonts.gstatic.com/s/cormorantgaramond/v21/co3umX5slCNuHLi8bLeY9MK7whWMhyjypVO7abI26QOD_hg9GnA.woff",
+};
+
+let fontCache: Record<string, Buffer | null> | null = null;
+
+async function loadCormorantFonts(): Promise<Record<string, Buffer | null>> {
+  if (fontCache) return fontCache;
+  const entries = await Promise.all(
+    (Object.entries(FONT_URLS) as [keyof typeof FONT_URLS, string][]).map(async ([weight, url]) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return [weight, null] as const;
+        return [weight, Buffer.from(await res.arrayBuffer())] as const;
+      } catch {
+        return [weight, null] as const;
+      }
+    })
+  );
+  fontCache = Object.fromEntries(entries);
+  return fontCache;
+}
+
+/** Enregistre les polices dispo dans ce document et renvoie les noms de police à utiliser (titre serif → fallback Times). */
+function registerFonts(doc: PDFKit.PDFDocument, fonts: Record<string, Buffer | null>) {
+  const names = { medium: "Times-Roman", semibold: "Times-Bold", bold: "Times-Bold" };
+  if (fonts.medium) {
+    doc.registerFont("CormorantGaramond-Medium", fonts.medium);
+    names.medium = "CormorantGaramond-Medium";
+  }
+  if (fonts.semibold) {
+    doc.registerFont("CormorantGaramond-SemiBold", fonts.semibold);
+    names.semibold = "CormorantGaramond-SemiBold";
+  }
+  if (fonts.bold) {
+    doc.registerFont("CormorantGaramond-Bold", fonts.bold);
+    names.bold = "CormorantGaramond-Bold";
+  }
+  return names;
+}
 
 async function fetchImageBuffer(url: string | null): Promise<Buffer | null> {
   if (!url) return null;
@@ -68,6 +119,24 @@ function diamond(doc: PDFKit.PDFDocument, cx: number, cy: number, size: number, 
   doc.restore();
 }
 
+// Icône "couverts" (fourchette + couteau) — tracé Lucide (bibliothèque déjà
+// utilisée sur le site), dessiné en vectoriel plutôt qu'incrusté en image :
+// net à toute taille, aucune ressource externe à charger.
+const UTENSILS_PATH = [
+  "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2",
+  "M7 2v20",
+  "M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7",
+];
+
+function drawUtensilsIcon(doc: PDFKit.PDFDocument, cx: number, cy: number, size: number, color: string) {
+  const scale = size / 24;
+  doc.save();
+  doc.translate(cx - size / 2, cy - size / 2).scale(scale);
+  for (const d of UTENSILS_PATH) doc.path(d);
+  doc.lineWidth(2 / scale).lineCap("round").lineJoin("round").strokeColor(color).stroke();
+  doc.restore();
+}
+
 export async function generateVoucherPdf(params: {
   amountLabel: string;
   code: string;
@@ -75,22 +144,35 @@ export async function generateVoucherPdf(params: {
   buyerName: string;
   recipientName: string | null;
   logoUrl: string | null;
+  siteName?: string;
+  contactEmail?: string | null;
 }): Promise<Buffer> {
   const { amountLabel, code, expiryLabel, buyerName, recipientName, logoUrl } = params;
+  const siteName = params.siteName ?? "19 Bonnes Tables Sarthoises";
+  const contactEmail = params.contactEmail ?? null;
 
-  const [qrBuffer, logoBuffer] = await Promise.all([
+  const [qrBuffer, logoBuffer, fonts] = await Promise.all([
     QRCode.toBuffer(code, { margin: 1, width: 400, color: { dark: COLORS.ink, light: COLORS.cream } }),
     fetchImageBuffer(logoUrl),
+    loadCormorantFonts(),
   ]);
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: [PAGE_WIDTH, PAGE_HEIGHT], margin: 0 });
+    const doc = new PDFDocument({
+      size: [PAGE_WIDTH, PAGE_HEIGHT],
+      margin: 0,
+      info: { Title: `Bon cadeau ${code}`, Author: siteName, Subject: "Bon cadeau" },
+    });
     const chunks: Buffer[] = [];
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    // ==================== FOND ====================
+    const serif = registerFonts(doc, fonts);
+
+    // ==================== PAGE 1 — CERTIFICAT ====================
+
+    // ---- Fond ----
     doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT).fill(COLORS.cream);
     const rightGradient = doc.linearGradient(RIGHT_X, 0, PAGE_WIDTH, PAGE_HEIGHT);
     rightGradient.stop(0, COLORS.gold).stop(1, COLORS.goldDark);
@@ -108,7 +190,7 @@ export async function generateVoucherPdf(params: {
 
     // ---- En-tête : nom de l'association + sceau ----
     eyebrow(doc, "Association des", MARGIN, 44);
-    doc.font("Times-Bold").fontSize(34).fillColor(COLORS.ink).text("19 Bonnes Tables", MARGIN, 58, { lineBreak: false });
+    doc.font(serif.semibold).fontSize(36).fillColor(COLORS.ink).text("19 Bonnes Tables", MARGIN, 56, { lineBreak: false });
     doc.fillColor(COLORS.gold).text("Sarthoises", MARGIN, 96, { lineBreak: false });
 
     const sealCx = 572;
@@ -125,7 +207,7 @@ export async function generateVoucherPdf(params: {
       doc.image(logoBuffer, sealCx - (sealR - 10), sealCy - (sealR - 10), { width: (sealR - 10) * 2, height: (sealR - 10) * 2 });
       doc.restore();
     } else {
-      doc.font("Times-Bold").fontSize(28).fillColor(COLORS.ink).text("19", sealCx - sealR, sealCy - 14, { width: sealR * 2, align: "center" });
+      drawUtensilsIcon(doc, sealCx, sealCy, 36, COLORS.ink);
     }
 
     // ---- Petit séparateur "DEPUIS 1969 · SARTHE" ----
@@ -141,14 +223,14 @@ export async function generateVoucherPdf(params: {
     const valueBoxW = 160;
     const valueBoxX = CONTENT_RIGHT - valueBoxW;
 
-    doc.font("Times-Bold").fontSize(64).fillColor(COLORS.ink).text("Bon-cadeau", MARGIN, 196, { lineBreak: false });
+    doc.font(serif.medium).fontSize(64).fillColor(COLORS.ink).text("Bon-cadeau", MARGIN, 196, { lineBreak: false });
 
     eyebrow(doc, "Valeur", valueBoxX, 196, { size: 8 });
     doc.moveTo(valueBoxX, 212).lineTo(valueBoxX + valueBoxW, 212).lineWidth(2).strokeColor(COLORS.gold).stroke();
     doc.rect(valueBoxX, 213, valueBoxW, 44).fill(COLORS.valueBoxBg);
     doc.moveTo(valueBoxX, 257).lineTo(valueBoxX + valueBoxW, 257).lineWidth(2).strokeColor(COLORS.gold).stroke();
     doc
-      .font("Times-Bold")
+      .font(serif.bold)
       .fontSize(36)
       .fillColor(COLORS.gold)
       .text(`${amountLabel} €`, valueBoxX, 222, { width: valueBoxW, align: "center" });
@@ -162,12 +244,12 @@ export async function generateVoucherPdf(params: {
     const fieldY = 352;
     const fieldColW = 250;
     eyebrow(doc, "Offert par", MARGIN, fieldY, { size: 8 });
-    doc.font("Times-Roman").fontSize(15).fillColor(COLORS.ink).text(buyerName, MARGIN, fieldY + 16, { width: fieldColW, lineBreak: false });
+    doc.font(serif.medium).fontSize(16).fillColor(COLORS.ink).text(buyerName, MARGIN, fieldY + 15, { width: fieldColW, lineBreak: false });
     dashedLine(doc, MARGIN, fieldY + 40, MARGIN + fieldColW, fieldY + 40, COLORS.goldLight);
 
     eyebrow(doc, "Offert à", 350, fieldY, { size: 8 });
     if (recipientName) {
-      doc.font("Times-Roman").fontSize(15).fillColor(COLORS.ink).text(recipientName, 350, fieldY + 16, { width: fieldColW, lineBreak: false });
+      doc.font(serif.medium).fontSize(16).fillColor(COLORS.ink).text(recipientName, 350, fieldY + 15, { width: fieldColW, lineBreak: false });
     }
     dashedLine(doc, 350, fieldY + 40, 350 + fieldColW, fieldY + 40, COLORS.goldLight);
 
@@ -181,7 +263,7 @@ export async function generateVoucherPdf(params: {
 
     if (expiryLabel) {
       eyebrow(doc, "Valable jusqu'au", valueBoxX, 446, { size: 8, width: valueBoxW, align: "right" });
-      doc.font("Times-Bold").fontSize(20).fillColor(COLORS.ink).text(expiryLabel, valueBoxX, 460, { width: valueBoxW, align: "right" });
+      doc.font(serif.semibold).fontSize(20).fillColor(COLORS.ink).text(expiryLabel, valueBoxX, 460, { width: valueBoxW, align: "right" });
     }
 
     // ==================== VOLET DROIT — authentification ====================
@@ -206,7 +288,7 @@ export async function generateVoucherPdf(params: {
 
     // petit sceau monogramme
     doc.circle(rightCx, 46, 16).lineWidth(1).strokeColor("#f7f1e299").stroke();
-    doc.font("Times-Bold").fontSize(16).fillColor(COLORS.cream).text("19", rightCx - 20, 37, { width: 40, align: "center" });
+    drawUtensilsIcon(doc, rightCx, 46, 18, COLORS.cream);
 
     doc
       .font("Helvetica-Bold")
@@ -267,6 +349,76 @@ export async function generateVoucherPdf(params: {
       );
     doc.fillOpacity(1);
     doc.restore();
+
+    // ==================== PAGE 2 — CONDITIONS D'UTILISATION ====================
+    doc.addPage({ size: [PAGE_WIDTH, PAGE_HEIGHT], margin: 0 });
+    doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT).fill(COLORS.cream);
+    doc.rect(0, 0, 8, PAGE_HEIGHT).fill(COLORS.gold);
+    doc.roundedRect(1, 1, PAGE_WIDTH - 2, PAGE_HEIGHT - 2, 6).lineWidth(1).strokeColor(COLORS.creamBorder).stroke();
+
+    eyebrow(doc, siteName, MARGIN, 40);
+    doc.font(serif.semibold).fontSize(28).fillColor(COLORS.ink).text("Conditions d'utilisation", MARGIN, 54, { lineBreak: false });
+    dashedLine(doc, MARGIN, 92, PAGE_WIDTH - MARGIN, 92, COLORS.creamBorder);
+
+    const clauses: [string, string][] = [
+      [
+        "Validité",
+        `Ce bon cadeau est valable pendant 12 mois à compter de la date d'achat (voir échéance en page 1), non prorogeable au-delà de cette date.`,
+      ],
+      [
+        "Utilisation",
+        `Il est utilisable dans n'importe lequel des restaurants membres de l'association ${siteName}, sur présentation du code ou du QR code figurant en page 1, de préférence sur réservation préalable auprès de l'établissement choisi.`,
+      ],
+      [
+        "Montant et fractionnement",
+        `Le bon cadeau n'est ni remboursable, ni échangeable contre des espèces. Il n'est pas fractionnable : sa valeur doit être utilisée en une seule fois. Si l'addition dépasse la valeur du bon, la différence reste à la charge du client ; si elle est inférieure, aucun rendu de monnaie n'est effectué.`,
+      ],
+      [
+        "Perte, vol ou usage frauduleux",
+        `Le code de ce bon cadeau fait office de titre : en cas de perte, de vol ou d'utilisation par un tiers non autorisé, l'association ne pourra être tenue responsable et aucun duplicata ne pourra être garanti.`,
+      ],
+      [
+        "Droit de rétractation",
+        `Conformément aux articles L221-18 et suivants du Code de la consommation, l'acheteur dispose d'un délai de 14 jours à compter de l'achat en ligne pour exercer son droit de rétractation, sauf si le bon cadeau a déjà été utilisé, en tout ou partie, avant l'expiration de ce délai.${
+          contactEmail ? ` Pour l'exercer, contactez ${contactEmail}.` : ""
+        }`,
+      ],
+      [
+        "Contact",
+        `Pour toute question relative à ce bon cadeau, ${
+          contactEmail ? `écrivez à ${contactEmail} ou ` : ""
+        }rendez-vous sur 19bonnes-tables-sarthoises.fr.`,
+      ],
+    ];
+
+    const colW = (PAGE_WIDTH - MARGIN * 2 - 40) / 2;
+    const colX = [MARGIN, MARGIN + colW + 40];
+    const colY = [112, 112];
+    clauses.forEach((clause, index) => {
+      const col = index % 2;
+      const [title, body] = clause;
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(10)
+        .fillColor(COLORS.gold)
+        .text(title.toUpperCase(), colX[col]!, colY[col]!, { width: colW, characterSpacing: 1 });
+      const titleHeight = doc.heightOfString(title.toUpperCase(), { width: colW, characterSpacing: 1 });
+      doc
+        .font("Helvetica")
+        .fontSize(9.5)
+        .fillColor(COLORS.inkSoft)
+        .text(body, colX[col]!, colY[col]! + titleHeight + 5, { width: colW, lineGap: 1.5 });
+      const bodyHeight = doc.heightOfString(body, { width: colW, lineGap: 1.5 });
+      colY[col]! += titleHeight + bodyHeight + 26;
+    });
+
+    doc
+      .font("Helvetica")
+      .fontSize(8)
+      .fillColor(COLORS.goldMuted)
+      .text(`Bon cadeau n° ${code} — édité le ${new Date().toLocaleDateString("fr-FR")}`, MARGIN, PAGE_HEIGHT - 34, {
+        lineBreak: false,
+      });
 
     doc.end();
   });
