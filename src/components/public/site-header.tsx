@@ -47,82 +47,89 @@ export function SiteHeader({
   const mainItems = items.filter((item) => item !== contactItem);
 
   return (
+    // Pas de backdrop-blur/filter sur le <header> lui-même : ces propriétés
+    // font de l'élément le "containing block" de ses descendants en
+    // position fixed (spec CSS), ce qui cassait le panneau mobile plus bas
+    // (il se positionnait par rapport au header de 80px au lieu du
+    // viewport, et ne couvrait donc pas tout l'écran). Le flou est isolé
+    // dans le wrapper interne ci-dessous, qui ne contient que la barre du
+    // haut — le panneau overlay reste un enfant direct de <header>, sans
+    // ancêtre à filter, donc un vrai fixed plein écran.
     <header
-      className={cn(
-        "sticky top-0 z-40 border-b border-ink-900/10 bg-cream-50/95 backdrop-blur transition-shadow duration-300",
-        scrolled && "shadow-[0_1px_0_0_rgba(23,19,15,0.06)]"
-      )}
+      className={cn("sticky top-0 z-40 transition-shadow duration-300", scrolled && "shadow-[0_1px_0_0_rgba(23,19,15,0.06)]")}
     >
-      <div className="container flex h-20 items-center justify-between">
-        <Link href="/" className="group flex items-center gap-3">
-          {logoUrl ? (
-            // object-contain (pas de recadrage) : on ne connaît pas les
-            // proportions du logo uploadé, qu'il soit carré, rond ou large.
-            <span className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
-              <Image src={logoUrl} alt={siteName} fill className="object-contain" sizes="48px" />
+      <div className="border-b border-ink-900/10 bg-cream-50/95 backdrop-blur">
+        <div className="container flex h-20 items-center justify-between">
+          <Link href="/" className="group flex items-center gap-3">
+            {logoUrl ? (
+              // object-contain (pas de recadrage) : on ne connaît pas les
+              // proportions du logo uploadé, qu'il soit carré, rond ou large.
+              <span className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
+                <Image src={logoUrl} alt={siteName} fill className="object-contain" sizes="48px" />
+              </span>
+            ) : null}
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-lg font-medium tracking-wide text-ink-900 sm:text-xl">
+                {siteName}
+              </span>
+              <span className="mt-1 hidden text-[10px] uppercase tracking-[0.25em] text-gold-600 sm:block">
+                Le savoir-faire pour mieux vous servir
+              </span>
             </span>
-          ) : null}
-          <span className="flex flex-col leading-none">
-            <span className="font-display text-lg font-medium tracking-wide text-ink-900 sm:text-xl">
-              {siteName}
-            </span>
-            <span className="mt-1 hidden text-[10px] uppercase tracking-[0.25em] text-gold-600 sm:block">
-              Le savoir-faire pour mieux vous servir
-            </span>
-          </span>
-        </Link>
+          </Link>
 
-        <nav className="hidden items-center gap-0.5 lg:flex">
-          {mainItems.map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              target={item.openInNewTab ? "_blank" : undefined}
-              rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-              className="link-sweep whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:text-wine-700"
-            >
-              {item.label}
-            </Link>
-          ))}
-          {contactItem ? (
-            <Link
-              href={contactItem.href}
-              target={contactItem.openInNewTab ? "_blank" : undefined}
-              rel={contactItem.openInNewTab ? "noopener noreferrer" : undefined}
-              className="ml-2 whitespace-nowrap rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
-            >
-              {contactItem.label}
-            </Link>
-          ) : null}
-        </nav>
+          <nav className="hidden items-center gap-0.5 lg:flex">
+            {mainItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                target={item.openInNewTab ? "_blank" : undefined}
+                rel={item.openInNewTab ? "noopener noreferrer" : undefined}
+                className="link-sweep whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-ink-700 transition-colors hover:text-wine-700"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {contactItem ? (
+              <Link
+                href={contactItem.href}
+                target={contactItem.openInNewTab ? "_blank" : undefined}
+                rel={contactItem.openInNewTab ? "noopener noreferrer" : undefined}
+                className="ml-2 whitespace-nowrap rounded-sm border border-ink-900/15 px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:border-wine-700 hover:text-wine-700"
+              >
+                {contactItem.label}
+              </Link>
+            ) : null}
+          </nav>
 
-        <button
-          className="relative z-50 flex h-10 w-10 items-center justify-center text-ink-900 lg:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-          aria-expanded={open}
-        >
-          <span className="relative block h-4 w-6">
-            <span
-              className={cn(
-                "absolute left-0 top-0 block h-0.5 w-6 bg-current transition-transform duration-300",
-                open && "translate-y-[7px] rotate-45"
-              )}
-            />
-            <span
-              className={cn(
-                "absolute left-0 top-[7px] block h-0.5 w-6 bg-current transition-opacity duration-200",
-                open && "opacity-0"
-              )}
-            />
-            <span
-              className={cn(
-                "absolute left-0 top-[14px] block h-0.5 w-6 bg-current transition-transform duration-300",
-                open && "-translate-y-[7px] -rotate-45"
-              )}
-            />
-          </span>
-        </button>
+          <button
+            className="relative z-50 flex h-10 w-10 items-center justify-center text-ink-900 lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={open}
+          >
+            <span className="relative block h-4 w-6">
+              <span
+                className={cn(
+                  "absolute left-0 top-0 block h-0.5 w-6 bg-current transition-transform duration-300",
+                  open && "translate-y-[7px] rotate-45"
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute left-0 top-[7px] block h-0.5 w-6 bg-current transition-opacity duration-200",
+                  open && "opacity-0"
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute left-0 top-[14px] block h-0.5 w-6 bg-current transition-transform duration-300",
+                  open && "-translate-y-[7px] -rotate-45"
+                )}
+              />
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Menu mobile/tablette plein écran (sous le seuil lg où la nav compacte s'affiche).
