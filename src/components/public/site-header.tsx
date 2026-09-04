@@ -125,11 +125,17 @@ export function SiteHeader({
         </button>
       </div>
 
-      {/* Menu mobile/tablette plein écran (sous le seuil lg où la nav compacte s'affiche) */}
+      {/* Menu mobile/tablette plein écran (sous le seuil lg où la nav compacte s'affiche).
+          Animé en transform, pas en opacity : un fondu en opacité rend le fond
+          cream temporairement translucide pendant la transition, laissant
+          apparaître le hero sombre en dessous (texte illisible) — avec
+          `invisible`, la visibilité bascule d'un coup (jamais d'état
+          intermédiaire) tandis que seul le glissement s'anime, fond toujours
+          100% opaque. */}
       <div
         className={cn(
-          "fixed inset-0 top-20 z-40 bg-cream-50 transition-opacity duration-300 lg:hidden",
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          "fixed inset-0 top-20 z-40 bg-cream-50 transition-transform duration-300 lg:hidden",
+          open ? "visible pointer-events-auto translate-y-0" : "invisible pointer-events-none -translate-y-2"
         )}
       >
         <nav className="container flex flex-col divide-y divide-ink-900/10 pt-4">

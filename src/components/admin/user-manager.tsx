@@ -92,7 +92,7 @@ export function UserManager({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm lg:col-span-2">
+      <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white shadow-sm lg:col-span-2">
         <table className="w-full text-sm">
           <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
             <tr>

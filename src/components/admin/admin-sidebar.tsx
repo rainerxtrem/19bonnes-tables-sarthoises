@@ -20,9 +20,11 @@ import {
   Settings,
   ShieldCheck,
   ScrollText,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useMobileNav } from "@/components/admin/mobile-nav-context";
 import type { Role } from "@prisma/client";
 
 type NavItem = { href: string; label: string; icon: LucideIcon; superAdminOnly?: boolean };
@@ -72,20 +74,49 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function AdminSidebar({ role }: { role: Role }) {
   const pathname = usePathname();
+  const { open, setOpen } = useMobileNav();
 
   return (
-    <nav className="flex h-full w-64 flex-col gap-6 overflow-y-auto border-r border-ink-100 bg-white px-4 py-5">
-      <div className="flex items-center gap-2.5 px-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-ink-950 font-display text-sm text-gold-400">
-          19
-        </span>
-        <div className="leading-tight">
-          <p className="font-display text-sm text-ink-900">Bonnes Tables</p>
-          <p className="text-[11px] uppercase tracking-wide text-ink-400">Administration</p>
-        </div>
-      </div>
+    <>
+      {/* Fond assombri derrière le tiroir — cliquer dessus le referme.
+          Uniquement sous le seuil lg, où la sidebar passe en tiroir plutôt
+          que de rester dans le flux normal de la page. */}
+      {open ? (
+        <div
+          className="fixed inset-0 z-40 bg-ink-950/40 lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
+      ) : null}
 
-      {NAV_GROUPS.map((group, groupIndex) => {
+      <nav
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-full w-64 -translate-x-full flex-col gap-6 overflow-y-auto border-r border-ink-100 bg-white px-4 py-5 transition-transform duration-200",
+          "lg:static lg:z-auto lg:translate-x-0",
+          open && "translate-x-0"
+        )}
+      >
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-ink-950 font-display text-sm text-gold-400">
+              19
+            </span>
+            <div className="leading-tight">
+              <p className="font-display text-sm text-ink-900">Bonnes Tables</p>
+              <p className="text-[11px] uppercase tracking-wide text-ink-400">Administration</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Fermer le menu"
+            className="flex h-8 w-8 items-center justify-center rounded-sm text-ink-400 hover:bg-cream-100 lg:hidden"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+
+        {NAV_GROUPS.map((group, groupIndex) => {
         const items = group.items.filter((item) => !item.superAdminOnly || role === "SUPER_ADMIN");
         if (items.length === 0) return null;
 
@@ -103,6 +134,7 @@ export function AdminSidebar({ role }: { role: Role }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-2.5 rounded-sm border-l-2 border-transparent px-3 py-2 text-sm font-medium text-ink-600 transition-colors hover:bg-cream-100 hover:text-ink-900",
                     isActive && "border-wine-700 bg-wine-50 text-wine-700 hover:bg-wine-50 hover:text-wine-700"
@@ -116,6 +148,7 @@ export function AdminSidebar({ role }: { role: Role }) {
           </div>
         );
       })}
-    </nav>
+      </nav>
+    </>
   );
 }

@@ -40,7 +40,7 @@ export default async function AdminAuditLogPage({ searchParams }: { searchParams
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
             <tr>

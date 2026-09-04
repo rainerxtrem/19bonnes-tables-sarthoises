@@ -23,7 +23,7 @@ export default async function AdminGalleryPage() {
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-cream-50 text-left text-xs uppercase text-ink-500">
             <tr>

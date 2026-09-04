@@ -135,7 +135,7 @@ export function TreasuryDashboard({ stats, restaurants }: { stats: TreasuryStats
             {restaurants.map((r) => {
               const isOpen = expanded.has(r.restaurantId);
               return (
-                <div key={r.restaurantId} className="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
+                <div key={r.restaurantId} className="overflow-x-auto rounded-lg border border-ink-100 bg-white shadow-sm">
                   <button
                     onClick={() => toggleExpand(r.restaurantId)}
                     className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-cream-50/60"

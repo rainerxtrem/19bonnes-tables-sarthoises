@@ -38,7 +38,7 @@ export default async function AdminNewsletterPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white">
           <table className="w-full text-sm">
             <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-500">
               <tr>
@@ -74,7 +74,7 @@ export default async function AdminNewsletterPage() {
 
       <div>
         <h2 className="mb-4 text-lg font-semibold text-ink-900">Campagnes envoyées</h2>
-        <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white">
           <table className="w-full text-sm">
             <thead className="border-b border-ink-100 bg-cream-50 text-left text-xs font-medium uppercase tracking-wide text-ink-500">
               <tr>
