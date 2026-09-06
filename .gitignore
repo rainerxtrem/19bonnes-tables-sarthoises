@@ -34,3 +34,6 @@ next-env.d.ts
 
 # fichiers de message de commit temporaires
 .git-commit-msg.txt
+
+# documents générés (docs/ : PDF, etc.) — reproductibles via scripts/generate-*.ts, pas versionnés
+docs/*.pdf
