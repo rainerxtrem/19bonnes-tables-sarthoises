@@ -14,6 +14,7 @@
  */
 import { PrismaClient, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { CGV_CONTENT } from "../scripts/cgv-content";
 
 const prisma = new PrismaClient();
 
@@ -107,6 +108,23 @@ async function main() {
       },
     });
   }
+
+  // Conditions générales de vente — contenu réel dès la création (contrairement
+  // aux deux pages ci-dessus) : les CGV encadrent la vente des bons cadeaux,
+  // déjà en production, donc pas de placeholder.
+  await prisma.page.upsert({
+    where: { slug: "cgv" },
+    update: {},
+    create: {
+      slug: "cgv",
+      title: "Conditions générales de vente",
+      excerpt: "Conditions générales de vente des bons cadeaux 19 Bonnes Tables Sarthoises.",
+      content: CGV_CONTENT,
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+      isSystem: true,
+    },
+  });
 
   await prisma.page.upsert({
     where: { slug: "bon-cadeaux" },

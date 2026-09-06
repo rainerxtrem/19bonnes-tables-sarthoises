@@ -57,6 +57,9 @@ export function SiteFooter({
             <Link href="/mentions-legales" className="w-fit hover:text-gold-300">
               Mentions légales
             </Link>
+            <Link href="/cgv" className="w-fit hover:text-gold-300">
+              Conditions générales de vente
+            </Link>
             <Link href="/politique-de-confidentialite" className="w-fit hover:text-gold-300">
               Politique de confidentialité
             </Link>
