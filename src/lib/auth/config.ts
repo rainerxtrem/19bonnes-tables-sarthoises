@@ -66,8 +66,23 @@ export const authConfig: NextAuthConfig = {
       const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
       if (isAdminRoute) {
         const role = auth?.user?.role;
-        if (!auth?.user || (role !== "SUPER_ADMIN" && role !== "ADMIN")) {
+        if (!auth?.user || (role !== "SUPER_ADMIN" && role !== "ADMIN" && role !== "SECRETAIRE")) {
           return NextResponse.redirect(new URL("/admin/login", request.url));
+        }
+        // SECRETAIRE n'a accès qu'aux bons cadeaux et au bloc "Communication"
+        // (voir GIFT_VOUCHER_ROLES/COMMUNICATION_ROLES dans
+        // lib/auth/permissions.ts, qui protègent les routes API
+        // correspondantes) — toute autre page /admin/* lui est fermée ici, en
+        // amont. `loginAction` redirige toujours vers /admin après connexion :
+        // pour ce rôle, on renvoie donc plutôt vers sa page d'accueil réelle.
+        if (role === "SECRETAIRE") {
+          const allowed =
+            pathname.startsWith("/admin/bon-cadeaux") ||
+            pathname.startsWith("/admin/messages") ||
+            pathname.startsWith("/admin/newsletter");
+          if (!allowed) {
+            return NextResponse.redirect(new URL("/admin/bon-cadeaux", request.url));
+          }
         }
         return true;
       }

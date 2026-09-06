@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireGiftVoucherAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { listVouchersAdmin } from "@/lib/services/gift-voucher.service";
 
@@ -9,7 +9,7 @@ function escapeCsvField(value: string): string {
 
 export async function GET() {
   try {
-    await requireContentAccess();
+    await requireGiftVoucherAccess();
     const vouchers = await listVouchersAdmin();
 
     const rows = [

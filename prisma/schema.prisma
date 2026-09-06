@@ -21,6 +21,11 @@ enum Role {
   // suivi des sommes à verser aux restaurants et de leur statut de
   // versement, plus les statistiques bons cadeaux. Rien d'autre côté CMS.
   TRESORIER
+  // Accès restreint, dans /admin, aux bons cadeaux (création, suivi,
+  // renvoi, statut) et au bloc "Communication" (messages de contact,
+  // newsletter). Aucun autre accès au CMS (restaurants, pages, bureau,
+  // trésorerie, réglages...).
+  SECRETAIRE
 }
 
 enum PublishStatus {

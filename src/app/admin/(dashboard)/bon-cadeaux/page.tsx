@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Download, Plus } from "lucide-react";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { PageForm } from "@/components/admin/page-form";
 import { listVouchersAdmin } from "@/lib/services/gift-voucher.service";
@@ -8,8 +9,15 @@ import { GiftVoucherTable, type GiftVoucherRow } from "@/components/admin/gift-v
 export const metadata = { title: "Bons cadeaux | Administration" };
 
 export default async function AdminBonCadeauxPage() {
+  const session = await auth();
+  // Le rôle SECRETAIRE a accès aux bons cadeaux mais pas au CMS de pages
+  // (voir /api/admin/pages, toujours réservé à SUPER_ADMIN/ADMIN) : le bloc
+  // d'édition du texte de la page publique lui est donc masqué plutôt que de
+  // lui présenter un formulaire qui échouerait (403) à l'enregistrement.
+  const canEditPageContent = session?.user.role !== "SECRETAIRE";
+
   const [page, vouchers] = await Promise.all([
-    prisma.page.findUnique({ where: { slug: "bon-cadeaux" } }),
+    canEditPageContent ? prisma.page.findUnique({ where: { slug: "bon-cadeaux" } }) : null,
     listVouchersAdmin(),
   ]);
 
@@ -69,13 +77,15 @@ export default async function AdminBonCadeauxPage() {
         <GiftVoucherTable rows={rows} />
       </div>
 
-      <div>
-        <h2 className="mb-4 font-display text-lg text-ink-900">Contenu de la page /bon-cadeaux</h2>
-        <p className="mb-6 text-sm text-ink-500">
-          Ce texte est affiché au-dessus du formulaire d&apos;achat sur la page publique.
-        </p>
-        {page ? <PageForm page={page} /> : <p className="text-sm text-red-600">Page introuvable — relancez le seed.</p>}
-      </div>
+      {canEditPageContent ? (
+        <div>
+          <h2 className="mb-4 font-display text-lg text-ink-900">Contenu de la page /bon-cadeaux</h2>
+          <p className="mb-6 text-sm text-ink-500">
+            Ce texte est affiché au-dessus du formulaire d&apos;achat sur la page publique.
+          </p>
+          {page ? <PageForm page={page} /> : <p className="text-sm text-red-600">Page introuvable — relancez le seed.</p>}
+        </div>
+      ) : null}
     </div>
   );
 }

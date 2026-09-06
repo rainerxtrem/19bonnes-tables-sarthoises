@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireCommunicationAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { prisma } from "@/lib/db/prisma";
 
@@ -10,7 +10,7 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    await requireContentAccess();
+    await requireCommunicationAccess();
     const { id } = await params;
     const { status } = bodySchema.parse(await request.json());
 
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
   try {
-    await requireContentAccess();
+    await requireCommunicationAccess();
     const { id } = await params;
     await prisma.contactMessage.delete({ where: { id } });
     return NextResponse.json({ success: true });

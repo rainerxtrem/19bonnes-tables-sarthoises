@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireGiftVoucherAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { adminGiftVoucherCreateSchema } from "@/lib/validation/gift-voucher";
 import { createVoucherManually } from "@/lib/services/gift-voucher.service";
@@ -8,7 +8,7 @@ import { recordAuditLog } from "@/lib/services/audit-log.service";
 /** Création manuelle d'un bon cadeau depuis l'admin — voir gift-voucher.service.ts. */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireContentAccess();
+    const session = await requireGiftVoucherAccess();
     const input = adminGiftVoucherCreateSchema.parse(await request.json());
     const voucher = await createVoucherManually(input);
 

@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireCommunicationAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { newsletterCampaignSchema } from "@/lib/validation/newsletter-campaign";
 import { sendCampaign, listCampaigns } from "@/lib/services/newsletter.service";
 
 export async function GET() {
   try {
-    await requireContentAccess();
+    await requireCommunicationAccess();
     const campaigns = await listCampaigns();
     return NextResponse.json({ campaigns });
   } catch (error) {
@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireContentAccess();
+    const session = await requireCommunicationAccess();
     const input = newsletterCampaignSchema.parse(await request.json());
     const result = await sendCampaign({ ...input, actorUserId: session.user.id });
     return NextResponse.json(result, { status: 201 });

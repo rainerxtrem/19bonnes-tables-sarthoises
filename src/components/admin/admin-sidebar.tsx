@@ -27,8 +27,19 @@ import { cn } from "@/lib/utils/cn";
 import { useMobileNav } from "@/components/admin/mobile-nav-context";
 import type { Role } from "@prisma/client";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; superAdminOnly?: boolean };
+// Rôles autorisés à voir un item donné. Par défaut (non précisé) : gestion de
+// contenu classique (SUPER_ADMIN + ADMIN) — c'était déjà le seul cas possible
+// avant l'introduction du rôle SECRETAIRE, dont l'accès est volontairement
+// étroit (voir GIFT_VOUCHER_ROLES/COMMUNICATION_ROLES dans
+// lib/auth/permissions.ts, et le filtrage par chemin dans lib/auth/config.ts
+// qui empêche de toute façon d'atteindre les autres pages).
+type NavItem = { href: string; label: string; icon: LucideIcon; roles?: Role[] };
 type NavGroup = { label?: string; items: NavItem[] };
+
+const DEFAULT_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN"];
+const SUPER_ADMIN_ONLY: Role[] = ["SUPER_ADMIN"];
+const GIFT_VOUCHER_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
+const COMMUNICATION_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -49,25 +60,25 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/admin/bureau", label: "Bureau", icon: Users },
       { href: "/admin/partenaires", label: "Partenaires", icon: Handshake },
-      { href: "/admin/bon-cadeaux", label: "Bons cadeaux", icon: Gift },
+      { href: "/admin/bon-cadeaux", label: "Bons cadeaux", icon: Gift, roles: GIFT_VOUCHER_ROLES },
       { href: "/admin/tresorerie", label: "Trésorerie", icon: Wallet },
     ],
   },
   {
     label: "Communication",
     items: [
-      { href: "/admin/messages", label: "Messages", icon: Mail },
-      { href: "/admin/newsletter", label: "Newsletter", icon: Send },
+      { href: "/admin/messages", label: "Messages", icon: Mail, roles: COMMUNICATION_ROLES },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Send, roles: COMMUNICATION_ROLES },
     ],
   },
   {
     label: "Réglages",
     items: [
       { href: "/admin/navigation", label: "Navigation", icon: Menu },
-      { href: "/admin/redirections", label: "Redirections", icon: Route, superAdminOnly: true },
-      { href: "/admin/settings", label: "Paramètres", icon: Settings, superAdminOnly: true },
-      { href: "/admin/administrateurs", label: "Administrateurs", icon: ShieldCheck, superAdminOnly: true },
-      { href: "/admin/journal", label: "Journal d'activité", icon: ScrollText, superAdminOnly: true },
+      { href: "/admin/redirections", label: "Redirections", icon: Route, roles: SUPER_ADMIN_ONLY },
+      { href: "/admin/settings", label: "Paramètres", icon: Settings, roles: SUPER_ADMIN_ONLY },
+      { href: "/admin/administrateurs", label: "Administrateurs", icon: ShieldCheck, roles: SUPER_ADMIN_ONLY },
+      { href: "/admin/journal", label: "Journal d'activité", icon: ScrollText, roles: SUPER_ADMIN_ONLY },
     ],
   },
 ];
@@ -117,7 +128,7 @@ export function AdminSidebar({ role }: { role: Role }) {
         </div>
 
         {NAV_GROUPS.map((group, groupIndex) => {
-        const items = group.items.filter((item) => !item.superAdminOnly || role === "SUPER_ADMIN");
+        const items = group.items.filter((item) => (item.roles ?? DEFAULT_ROLES).includes(role));
         if (items.length === 0) return null;
 
         return (

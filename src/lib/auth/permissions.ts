@@ -16,6 +16,13 @@ const CONTENT_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN"];
 // (l'admin doit pouvoir tout faire aussi, voir demande explicite) ET au
 // rôle TRESORIER, dédié, qui n'a accès à rien d'autre du CMS.
 const TREASURY_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "TRESORIER"];
+// Bons cadeaux (création, suivi, renvoi, statut) et bloc "Communication"
+// (messages de contact, newsletter) : accessibles aux gestionnaires de
+// contenu ET au rôle SECRETAIRE, dédié, qui n'a accès à rien d'autre du CMS
+// (voir aussi lib/auth/config.ts, qui restreint les URL /admin/* atteignables
+// par ce rôle en amont, et admin-sidebar.tsx pour l'affichage du menu).
+const GIFT_VOUCHER_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
+const COMMUNICATION_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
 
 export class UnauthorizedError extends Error {
   constructor(message = "Authentification requise") {
@@ -59,6 +66,24 @@ export async function requireSuperAdmin() {
 export async function requireTreasuryAccess() {
   const session = await requireSession();
   if (!TREASURY_ROLES.includes(session.user.role)) {
+    throw new ForbiddenError();
+  }
+  return session;
+}
+
+/** Bons cadeaux : création manuelle, liste, renvoi par email, changement de statut, suppression. */
+export async function requireGiftVoucherAccess() {
+  const session = await requireSession();
+  if (!GIFT_VOUCHER_ROLES.includes(session.user.role)) {
+    throw new ForbiddenError();
+  }
+  return session;
+}
+
+/** Communication : messages de contact et newsletter (abonnés, campagnes). */
+export async function requireCommunicationAccess() {
+  const session = await requireSession();
+  if (!COMMUNICATION_ROLES.includes(session.user.role)) {
     throw new ForbiddenError();
   }
   return session;

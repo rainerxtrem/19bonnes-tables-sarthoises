@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireContentAccess } from "@/lib/auth/permissions";
+import { requireCommunicationAccess } from "@/lib/auth/permissions";
 import { handleApiError } from "@/lib/api/handle-error";
 import { listActiveSubscribers } from "@/lib/services/newsletter.service";
 
@@ -9,7 +9,7 @@ function escapeCsvField(value: string): string {
 
 export async function GET() {
   try {
-    await requireContentAccess();
+    await requireCommunicationAccess();
     const subscribers = await listActiveSubscribers();
 
     const rows = [
