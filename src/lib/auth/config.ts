@@ -82,7 +82,14 @@ export const authConfig: NextAuthConfig = {
 
       const isTreasuryRoute = pathname.startsWith("/tresorerie") && pathname !== "/tresorerie/login";
       if (isTreasuryRoute) {
-        if (!auth?.user || auth.user.role !== "TRESORIER") {
+        // Doit rester synchronisé avec TREASURY_ROLES dans lib/auth/permissions.ts
+        // (SUPER_ADMIN et ADMIN ont aussi accès à la trésorerie, pas seulement
+        // TRESORIER) — sans ça, un admin qui se connecte ici réussit
+        // l'authentification mais se fait immédiatement renvoyer vers
+        // /tresorerie/login par ce middleware, ce qui ressemble à un login qui
+        // "charge" sans jamais aboutir.
+        const role = auth?.user?.role;
+        if (!auth?.user || (role !== "SUPER_ADMIN" && role !== "ADMIN" && role !== "TRESORIER")) {
           return NextResponse.redirect(new URL("/tresorerie/login", request.url));
         }
         return true;
