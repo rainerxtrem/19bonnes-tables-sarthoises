@@ -24,14 +24,14 @@ export function FaqAccordion({ items }: { items: FaqItemData[] }) {
               className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
               aria-expanded={isOpen}
             >
-              <span className="font-display text-lg text-ink-900">{item.question}</span>
+              <span className="min-w-0 flex-1 break-words font-display text-lg text-ink-900">{item.question}</span>
               <ChevronDown
                 className={cn("h-4 w-4 shrink-0 text-gold-600 transition-transform duration-300", isOpen && "rotate-180")}
                 aria-hidden
               />
             </button>
             {isOpen ? (
-              <div className="px-6 pb-6 text-sm leading-relaxed text-ink-600 whitespace-pre-wrap">{item.answer}</div>
+              <div className="whitespace-pre-wrap break-words px-6 pb-6 text-sm leading-relaxed text-ink-600">{item.answer}</div>
             ) : null}
           </div>
         );
