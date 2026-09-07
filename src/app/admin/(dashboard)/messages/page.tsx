@@ -4,7 +4,10 @@ import { MessageList } from "@/components/admin/message-list";
 export const metadata = { title: "Messages | Administration" };
 
 export default async function AdminMessagesPage() {
-  const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
+  const messages = await prisma.contactMessage.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { repliedByUser: { select: { name: true } } },
+  });
 
   return (
     <div>
@@ -19,6 +22,9 @@ export default async function AdminMessagesPage() {
           message: m.message,
           status: m.status,
           createdAt: m.createdAt.toISOString(),
+          repliedAt: m.repliedAt?.toISOString() ?? null,
+          replyMessage: m.replyMessage,
+          repliedByName: m.repliedByUser?.name ?? null,
         }))}
       />
     </div>

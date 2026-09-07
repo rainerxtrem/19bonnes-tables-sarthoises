@@ -17,6 +17,7 @@ const ACTION_LABELS: Record<string, string> = {
   "gift-voucher.payout-all-paid": "Versements marqués effectués (restaurant)",
   "restaurant.publish": "Restaurant publié",
   "restaurant.archive": "Restaurant archivé",
+  "contact-message.reply": "Réponse envoyée à un message de contact",
 };
 
 function formatDateTime(value: Date) {

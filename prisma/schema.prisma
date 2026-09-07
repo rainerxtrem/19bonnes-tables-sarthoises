@@ -72,12 +72,13 @@ model User {
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
-  articles             Article[]
-  uploadedMedia        Media[]
-  auditLogs            AuditLog[]
-  newsletterCampaigns  NewsletterCampaign[]
-  redeemedGiftVouchers GiftVoucher[]
-  paidGiftVouchers     GiftVoucher[]        @relation("GiftVoucherPaidBy")
+  articles                Article[]
+  uploadedMedia           Media[]
+  auditLogs               AuditLog[]
+  newsletterCampaigns     NewsletterCampaign[]
+  redeemedGiftVouchers    GiftVoucher[]
+  paidGiftVouchers        GiftVoucher[]        @relation("GiftVoucherPaidBy")
+  repliedContactMessages  ContactMessage[]     @relation("ContactMessageRepliedBy")
 
   @@map("users")
 }
@@ -459,6 +460,13 @@ model ContactMessage {
   createdAt   DateTime             @default(now())
   readAt      DateTime?
   archivedAt  DateTime?
+
+  // Réponse envoyée depuis /admin/messages (un seul niveau, pas de fil de
+  // discussion complet) : on ne conserve que la dernière réponse envoyée.
+  repliedAt       DateTime?
+  replyMessage    String?         @db.Text
+  repliedByUserId String?
+  repliedByUser   User?           @relation("ContactMessageRepliedBy", fields: [repliedByUserId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
   @@map("contact_messages")

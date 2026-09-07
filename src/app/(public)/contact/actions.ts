@@ -6,8 +6,9 @@ import { prisma } from "@/lib/db/prisma";
 import { contactFormSchema } from "@/lib/validation/contact";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMail } from "@/lib/mailer";
-import { renderEmail, escapeHtml } from "@/lib/email-template";
+import { renderEmail, escapeHtml, emailButton } from "@/lib/email-template";
 import { getSiteSettings } from "@/lib/services/settings.service";
+import { absoluteUrl } from "@/lib/seo";
 
 export type ContactFormState = {
   success?: boolean;
@@ -68,8 +69,9 @@ export async function submitContactForm(
     after(async () => {
       try {
         const settings = await getSiteSettings();
+        const messagesUrl = absoluteUrl("/admin/messages");
         const bodyHtml = `
-          <p style="margin:0 0 16px;">Nouveau message reçu via le formulaire de contact du site :</p>
+          <p style="margin:0 0 16px;">Une nouvelle demande de contact est en attente sur le site :</p>
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px; font-size:14px;">
             <tr><td style="padding:4px 0; color:#6f6455; width:90px;">Nom</td><td style="padding:4px 0;"><strong>${escapeHtml(message.fullName)}</strong></td></tr>
             <tr><td style="padding:4px 0; color:#6f6455;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(message.email)}" style="color:#642227;">${escapeHtml(message.email)}</a></td></tr>
@@ -77,15 +79,16 @@ export async function submitContactForm(
             <tr><td style="padding:4px 0; color:#6f6455;">Objet</td><td style="padding:4px 0;">${escapeHtml(message.subject ?? "—")}</td></tr>
           </table>
           <p style="margin:0 0 8px; padding:16px; background-color:#faf6ee; border-radius:3px; white-space:pre-wrap;">${escapeHtml(message.message)}</p>
+          ${emailButton("Voir et répondre au message", messagesUrl)}
         `;
 
         await sendMail({
           to: notifyEmail,
-          subject: `Nouveau message de contact — ${message.fullName}`,
-          text: `${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}`,
+          subject: "Nouvelle demande de contact en attente sur le site",
+          text: `Une nouvelle demande de contact est en attente sur le site.\n\n${message.fullName} (${message.email}${message.phone ? ", " + message.phone : ""})\nObjet: ${message.subject ?? "—"}\n\n${message.message}\n\nRépondre : ${messagesUrl}`,
           html: renderEmail({
             siteName: settings.siteName,
-            preheader: `Nouveau message de ${message.fullName}`,
+            preheader: "Nouvelle demande de contact en attente sur le site",
             bodyHtml,
           }),
         });
