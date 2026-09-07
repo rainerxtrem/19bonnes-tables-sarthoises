@@ -78,7 +78,7 @@ model User {
   newsletterCampaigns     NewsletterCampaign[]
   redeemedGiftVouchers    GiftVoucher[]
   paidGiftVouchers        GiftVoucher[]        @relation("GiftVoucherPaidBy")
-  repliedContactMessages  ContactMessage[]     @relation("ContactMessageRepliedBy")
+  contactMessageReplies   ContactMessageReply[] @relation("ContactMessageReplyAuthor")
 
   @@map("users")
 }
@@ -461,15 +461,44 @@ model ContactMessage {
   readAt      DateTime?
   archivedAt  DateTime?
 
-  // Réponse envoyée depuis /admin/messages (un seul niveau, pas de fil de
-  // discussion complet) : on ne conserve que la dernière réponse envoyée.
-  repliedAt       DateTime?
-  replyMessage    String?         @db.Text
-  repliedByUserId String?
-  repliedByUser   User?           @relation("ContactMessageRepliedBy", fields: [repliedByUserId], references: [id], onDelete: SetNull)
+  // Fil de discussion complet (réponses de l'équipe ET du client, dans
+  // l'ordre chronologique) — voir ContactMessageReply. Une réponse client
+  // reçue remet automatiquement `status` à UNREAD (voir webhook Resend
+  // Inbound) pour réapparaître comme "à traiter".
+  replies ContactMessageReply[]
 
   @@index([status, createdAt])
   @@map("contact_messages")
+}
+
+enum ContactMessageReplyDirection {
+  // Envoyé depuis /admin/messages vers le client, par email.
+  STAFF
+  // Reçu par email (le client a répondu à un email STAFF) — capturé via
+  // Resend Inbound sur un sous-domaine dédié (reponses.<domaine>), voir
+  // /api/webhooks/resend-inbound. Jamais saisi manuellement.
+  CLIENT
+}
+
+model ContactMessageReply {
+  id               String                        @id @default(cuid())
+  contactMessageId String
+  contactMessage   ContactMessage                @relation(fields: [contactMessageId], references: [id], onDelete: Cascade)
+  direction        ContactMessageReplyDirection
+  body             String                        @db.Text
+  // Renseigné uniquement pour direction = STAFF.
+  authorUserId     String?
+  authorUser       User?                         @relation("ContactMessageReplyAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  // Renseignés uniquement pour direction = CLIENT — id Resend de l'email
+  // reçu (déduplique un webhook rejoué) et adresse d'expédition brute
+  // (normalement identique à ContactMessage.email, capturée telle quelle
+  // par sécurité/traçabilité).
+  resendEmailId    String?                       @unique
+  fromEmail        String?
+  createdAt        DateTime                      @default(now())
+
+  @@index([contactMessageId, createdAt])
+  @@map("contact_message_replies")
 }
 
 // ---------------------------------------------------------------------------

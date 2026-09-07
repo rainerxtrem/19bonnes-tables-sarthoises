@@ -7,6 +7,7 @@ import { recordAuditLog } from "@/lib/services/audit-log.service";
 import { sendMail } from "@/lib/mailer";
 import { renderEmail, escapeHtml, textToParagraphsHtml } from "@/lib/email-template";
 import { getSiteSettings } from "@/lib/services/settings.service";
+import { buildInboundReplyAddress } from "@/lib/contact-reply-address";
 
 const bodySchema = z.object({
   replyMessage: z.string().trim().min(2, "La réponse est trop courte").max(5000),
@@ -14,8 +15,11 @@ const bodySchema = z.object({
 
 type Params = { params: Promise<{ id: string }> };
 
-/** Réponse envoyée depuis /admin/messages : email au client + trace en base
- * (voir schema.prisma, ContactMessage.repliedAt/replyMessage/repliedByUser). */
+/** Réponse envoyée depuis /admin/messages : email au client + entrée dans le
+ * fil de discussion (ContactMessageReply, direction STAFF). Le Reply-To est
+ * une adresse dédiée (voir contact-reply-address.ts) : si le client répond
+ * à son tour, Resend Inbound la capture automatiquement (voir
+ * /api/webhooks/resend-inbound) — pas besoin de consulter une boîte mail. */
 export async function POST(request: NextRequest, { params }: Params) {
   try {
     const session = await requireCommunicationAccess();
@@ -28,6 +32,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     }
 
     const settings = await getSiteSettings();
+    const replyTo = buildInboundReplyAddress(id) ?? undefined;
     const bodyHtml = `
       <p style="margin:0 0 16px;">Bonjour ${escapeHtml(original.fullName)},</p>
       ${textToParagraphsHtml(replyMessage)}
@@ -44,21 +49,28 @@ export async function POST(request: NextRequest, { params }: Params) {
         preheader: `Réponse à votre message du ${original.createdAt.toLocaleDateString("fr-FR")}`,
         bodyHtml,
       }),
+      replyTo,
     });
 
-    const message = await prisma.contactMessage.update({
-      where: { id },
-      data: {
-        replyMessage,
-        repliedAt: new Date(),
-        repliedByUserId: session.user.id,
-        // La réponse implique que le message a été lu ; on ne désarchive pas
-        // pour autant un message déjà classé.
-        status: original.status === "ARCHIVED" ? "ARCHIVED" : "READ",
-        readAt: original.readAt ?? new Date(),
-      },
-      include: { repliedByUser: { select: { name: true } } },
-    });
+    const [reply, message] = await prisma.$transaction([
+      prisma.contactMessageReply.create({
+        data: {
+          contactMessageId: id,
+          direction: "STAFF",
+          body: replyMessage,
+          authorUserId: session.user.id,
+        },
+      }),
+      prisma.contactMessage.update({
+        where: { id },
+        data: {
+          // La réponse implique que le message a été lu ; on ne désarchive
+          // pas pour autant un message déjà classé.
+          status: original.status === "ARCHIVED" ? "ARCHIVED" : "READ",
+          readAt: original.readAt ?? new Date(),
+        },
+      }),
+    ]);
 
     await recordAuditLog({
       userId: session.user.id,
@@ -67,7 +79,9 @@ export async function POST(request: NextRequest, { params }: Params) {
       entityId: id,
     });
 
-    return NextResponse.json({ message });
+    return NextResponse.json({
+      message: { ...message, reply: { ...reply, authorName: session.user.name } },
+    });
   } catch (error) {
     return handleApiError(error);
   }

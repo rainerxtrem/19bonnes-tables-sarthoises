@@ -6,7 +6,12 @@ export const metadata = { title: "Messages | Administration" };
 export default async function AdminMessagesPage() {
   const messages = await prisma.contactMessage.findMany({
     orderBy: { createdAt: "desc" },
-    include: { repliedByUser: { select: { name: true } } },
+    include: {
+      replies: {
+        orderBy: { createdAt: "asc" },
+        include: { authorUser: { select: { name: true } } },
+      },
+    },
   });
 
   return (
@@ -22,9 +27,13 @@ export default async function AdminMessagesPage() {
           message: m.message,
           status: m.status,
           createdAt: m.createdAt.toISOString(),
-          repliedAt: m.repliedAt?.toISOString() ?? null,
-          replyMessage: m.replyMessage,
-          repliedByName: m.repliedByUser?.name ?? null,
+          replies: m.replies.map((r) => ({
+            id: r.id,
+            direction: r.direction,
+            body: r.body,
+            createdAt: r.createdAt.toISOString(),
+            authorName: r.authorUser?.name ?? null,
+          })),
         }))}
       />
     </div>

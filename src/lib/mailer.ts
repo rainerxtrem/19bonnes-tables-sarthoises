@@ -13,6 +13,10 @@ export async function sendMail(params: {
   subject: string;
   text: string;
   html?: string;
+  // Adresse à laquelle un "Répondre" du destinataire doit atterrir, si
+  // différente de MAIL_FROM (ex : réponses aux messages de contact, captées
+  // automatiquement via Resend Inbound — voir /api/webhooks/resend-inbound).
+  replyTo?: string;
   // Pièce jointe réelle (ex : certificat de bon cadeau en PDF) — Resend
   // attend `content` en base64, pas le buffer brut.
   attachments?: { filename: string; content: string }[];
@@ -35,6 +39,7 @@ export async function sendMail(params: {
       subject: params.subject,
       text: params.text,
       html: params.html,
+      reply_to: params.replyTo,
       attachments: params.attachments,
     }),
   });
