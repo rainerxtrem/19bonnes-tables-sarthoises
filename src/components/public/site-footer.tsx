@@ -32,6 +32,9 @@ export function SiteFooter({
             <Link href="/actualites" className="w-fit hover:text-gold-300">
               Actualités
             </Link>
+            <Link href="/agenda" className="w-fit hover:text-gold-300">
+              Agenda
+            </Link>
             <a href="/feed.xml" className="flex w-fit items-center gap-1.5 hover:text-gold-300">
               <Rss className="h-3.5 w-3.5" aria-hidden />
               Flux RSS
@@ -53,6 +56,9 @@ export function SiteFooter({
             </Link>
             <Link href="/contact" className="w-fit hover:text-gold-300">
               Nous contacter
+            </Link>
+            <Link href="/faq" className="w-fit hover:text-gold-300">
+              FAQ
             </Link>
             <Link href="/mentions-legales" className="w-fit hover:text-gold-300">
               Mentions légales

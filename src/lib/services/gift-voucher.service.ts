@@ -504,6 +504,50 @@ export async function listRestaurantPayouts() {
   return Array.from(byRestaurant.values()).sort((a, b) => b.pendingCents - a.pendingCents);
 }
 
+/**
+ * Même regroupement que listRestaurantPayouts(), mais borné à une période
+ * (bons validés dans l'intervalle [from, to[) — sert le relevé comptable
+ * mensuel PDF (voir treasury-statement-pdf.ts). Tri alphabétique par
+ * restaurant plutôt que par montant dû : un relevé comptable se consulte
+ * dans un ordre stable, pas par "qui doit le plus".
+ */
+export async function listRestaurantPayoutsInRange(from: Date, to: Date) {
+  const redeemed = await prisma.giftVoucher.findMany({
+    where: { status: "REDEEMED", redeemedAt: { gte: from, lt: to } },
+    include: { redeemedAtRestaurant: { select: { id: true, name: true, slug: true } } },
+    orderBy: { redeemedAt: "asc" },
+  });
+
+  const byRestaurant = new Map<
+    string,
+    {
+      restaurantId: string;
+      restaurantName: string;
+      pendingCents: number;
+      paidCents: number;
+      vouchers: typeof redeemed;
+    }
+  >();
+
+  for (const voucher of redeemed) {
+    if (!voucher.redeemedAtRestaurant) continue;
+    const key = voucher.redeemedAtRestaurant.id;
+    const entry = byRestaurant.get(key) ?? {
+      restaurantId: voucher.redeemedAtRestaurant.id,
+      restaurantName: voucher.redeemedAtRestaurant.name,
+      pendingCents: 0,
+      paidCents: 0,
+      vouchers: [] as typeof redeemed,
+    };
+    if (voucher.payoutStatus === "PAID") entry.paidCents += voucher.amountCents;
+    else entry.pendingCents += voucher.amountCents;
+    entry.vouchers.push(voucher);
+    byRestaurant.set(key, entry);
+  }
+
+  return Array.from(byRestaurant.values()).sort((a, b) => a.restaurantName.localeCompare(b.restaurantName, "fr"));
+}
+
 /** Change le statut de versement d'un bon donné (ADMIN ou TRESORIER). */
 export async function setVoucherPayoutStatus(id: string, paid: boolean, actorUserId: string) {
   const voucher = await getVoucherById(id);

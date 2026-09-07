@@ -21,6 +21,8 @@ import {
   ShieldCheck,
   ScrollText,
   X,
+  HelpCircle,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -51,6 +53,8 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/restaurants", label: "Restaurants", icon: UtensilsCrossed },
       { href: "/admin/pages", label: "Pages", icon: FileText },
       { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
+      { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
+      { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
       { href: "/admin/categories", label: "Catégories", icon: Tags },
       { href: "/admin/galerie", label: "Galerie", icon: ImageIcon },
     ],

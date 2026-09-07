@@ -1,9 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, Download } from "lucide-react";
 import type { GiftVoucherPayoutStatus, GiftVoucherStatus } from "@prisma/client";
+
+/** 12 derniers mois, du plus récent au plus ancien, au format attendu par
+ * l'API (YYYY-MM) et un libellé français pour l'affichage. */
+function lastTwelveMonths() {
+  const now = new Date();
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    return { value, label: label.charAt(0).toUpperCase() + label.slice(1) };
+  });
+}
 
 export interface TreasuryVoucherRow {
   id: string;
@@ -53,6 +65,8 @@ export function TreasuryDashboard({ stats, restaurants }: { stats: TreasuryStats
   const router = useRouter();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<string | null>(null);
+  const months = useMemo(lastTwelveMonths, []);
+  const [statementMonth, setStatementMonth] = useState(months[0]?.value ?? "");
 
   function toggleExpand(id: string) {
     setExpanded((prev) => {
@@ -119,11 +133,34 @@ export function TreasuryDashboard({ stats, restaurants }: { stats: TreasuryStats
       </div>
 
       <div>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg text-ink-900">Versements aux restaurants</h2>
           <p className="text-sm text-ink-500">
             Total restant dû : <strong className="text-ink-900">{euros(totalPending)}</strong>
           </p>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-ink-100 bg-white p-3 shadow-sm">
+          <span className="text-sm text-ink-600">Relevé comptable mensuel :</span>
+          <select
+            value={statementMonth}
+            onChange={(e) => setStatementMonth(e.target.value)}
+            className="rounded-sm border border-ink-200 bg-white px-2.5 py-1.5 text-sm text-ink-700"
+          >
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+          {/* Téléchargement natif du navigateur (Content-Disposition), pas de navigation interne — <a> volontaire. */}
+          <a
+            href={`/api/treasury/statement?month=${statementMonth}`}
+            className="inline-flex items-center gap-1.5 rounded-sm bg-wine-700 px-3 py-1.5 text-xs font-medium text-cream-50 transition-colors hover:bg-wine-800"
+          >
+            <Download className="h-3.5 w-3.5" aria-hidden />
+            Télécharger en PDF
+          </a>
         </div>
 
         {restaurants.length === 0 ? (

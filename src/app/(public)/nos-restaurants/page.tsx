@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { listPublishedRestaurants } from "@/lib/services/restaurant.service";
 import { RestaurantDirectory } from "@/components/public/restaurant-directory";
+import { RestaurantsMapLoader } from "@/components/public/restaurants-map-loader";
 import { Reveal } from "@/components/public/reveal";
 import { buildMetadata, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
 
@@ -15,6 +16,9 @@ export const metadata: Metadata = buildMetadata({
 
 export default async function NosRestaurantsPage() {
   const restaurants = await listPublishedRestaurants();
+  const mapRestaurants = restaurants
+    .filter((r): r is typeof r & { latitude: number; longitude: number } => r.latitude != null && r.longitude != null)
+    .map((r) => ({ id: r.id, slug: r.slug, name: r.name, city: r.city, latitude: r.latitude, longitude: r.longitude }));
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
@@ -54,6 +58,18 @@ export default async function NosRestaurantsPage() {
           </Reveal>
         </div>
       </section>
+
+      {mapRestaurants.length > 0 ? (
+        <section className="border-b border-ink-900/10 py-16 sm:py-20">
+          <div className="container">
+            <Reveal>
+              <div className="mx-auto h-[420px] max-w-4xl overflow-hidden rounded-md shadow-elevated sm:h-[480px]">
+                <RestaurantsMapLoader restaurants={mapRestaurants} />
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
 
       <section className="py-16 sm:py-20">
         <div className="container">

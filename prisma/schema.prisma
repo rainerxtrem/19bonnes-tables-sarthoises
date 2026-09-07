@@ -114,6 +114,7 @@ model Media {
   boardMemberFor     BoardMember[]
   partnerLogoFor     Partner[]
   galleryItems       GalleryItem[]
+  eventMainFor       Event[]           @relation("EventMainImage")
   settingsLogoFor    SiteSetting[]     @relation("SettingsLogo")
   settingsFaviconFor SiteSetting[]     @relation("SettingsFavicon")
   settingsOgFor      SiteSetting[]     @relation("SettingsOgImage")
@@ -382,6 +383,47 @@ model Partner {
 
   @@index([isActive, order])
   @@map("partners")
+}
+
+// ---------------------------------------------------------------------------
+// FAQ
+// ---------------------------------------------------------------------------
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@map("faq_items")
+}
+
+// ---------------------------------------------------------------------------
+// Événements / agenda
+// ---------------------------------------------------------------------------
+
+model Event {
+  id          String        @id @default(cuid())
+  title       String
+  description String?       @db.Text
+  // Pas de fin obligatoire (ex. une porte ouverte sur une soirée) ; quand
+  // elle est renseignée, sert à savoir si l'événement est "en cours" plutôt
+  // que juste "à venir"/"passé" sur la page publique.
+  startAt     DateTime
+  endAt       DateTime?
+  location    String?
+  mainImageId String?
+  mainImage   Media?        @relation("EventMainImage", fields: [mainImageId], references: [id], onDelete: SetNull)
+  status      PublishStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, startAt])
+  @@map("events")
 }
 
 // ---------------------------------------------------------------------------
