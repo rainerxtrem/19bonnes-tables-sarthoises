@@ -54,6 +54,13 @@ const nextConfig: NextConfig = {
       { source: "/local-specialties", destination: "/", permanent: true },
       { source: "/reschedule-appointment", destination: "/", permanent: true },
       { source: "/cancel-appointment", destination: "/", permanent: true },
+      // L'espace trésorerie avait sa propre connexion séparée
+      // (/tresorerie/login) ; le rôle TRESORIER se connecte maintenant
+      // depuis /admin/login comme les autres rôles restreints (secrétaire).
+      // Non permanent (302) : route interne authentifiée, pas un contenu
+      // public à réindexer — au cas où ce choix serait revu plus tard.
+      { source: "/tresorerie", destination: "/admin/login", permanent: false },
+      { source: "/tresorerie/:path*", destination: "/admin/login", permanent: false },
     ];
   },
   async headers() {

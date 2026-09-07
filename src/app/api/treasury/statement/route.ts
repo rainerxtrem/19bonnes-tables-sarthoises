@@ -5,10 +5,10 @@ import { listRestaurantPayoutsInRange } from "@/lib/services/gift-voucher.servic
 import { generateTreasuryStatementPdf } from "@/lib/services/treasury-statement-pdf";
 import { getSiteSettings } from "@/lib/services/settings.service";
 
-// Accessible aux deux portails (voir /admin/tresorerie et /tresorerie) :
-// même route API pour les deux, comme les autres endpoints /api/treasury/*
-// déjà partagés, gardée par requireTreasuryAccess() (SUPER_ADMIN/ADMIN/
-// TRESORIER) plutôt que par le préfixe d'URL.
+// Sous /api/treasury/* (pas /api/admin/*) comme les autres endpoints de
+// trésorerie déjà partagés : gardée par requireTreasuryAccess()
+// (SUPER_ADMIN/ADMIN/TRESORIER, tous trois via /admin/tresorerie) plutôt que
+// par le préfixe d'URL.
 export async function GET(request: NextRequest) {
   try {
     await requireTreasuryAccess();

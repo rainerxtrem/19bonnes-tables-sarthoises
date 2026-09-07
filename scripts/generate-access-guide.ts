@@ -325,7 +325,7 @@ calloutBox(
 sectionTitle("Section 2", "Accès Trésorier");
 
 body(
-  "Ce rôle donne accès à un espace dédié et simplifié, entièrement séparé de l'administration du site, consacré au suivi des sommes à verser aux restaurants pour les bons cadeaux utilisés chez eux."
+  "Ce rôle donne accès, dans l'administration, uniquement à la trésorerie : le suivi des sommes à verser aux restaurants pour les bons cadeaux utilisés chez eux. Rien d'autre ne lui est ouvert."
 );
 
 subTitle("Créer le compte (réservé au Super administrateur)");
@@ -338,9 +338,9 @@ steps([
 ]);
 
 subTitle("Se connecter");
-urlLine("Adresse : ", "/tresorerie/login");
+urlLine("Adresse : ", "/admin/login");
 body(
-  "Attention : c'est une adresse différente de celle de l'administration (/admin/login). Le trésorier ne se connecte jamais sur /admin — son espace est /tresorerie."
+  "C'est la même page de connexion que pour les administrateurs et la secrétaire. Après connexion, le trésorier arrive automatiquement sur la page Trésorerie (et non sur le tableau de bord général, qui ne lui est pas accessible)."
 );
 
 subTitle("Ce que le trésorier peut faire");
@@ -349,11 +349,12 @@ bullets([
   "Marquer un bon cadeau individuel comme versé ou non versé",
   "Marquer en une fois tous les bons en attente d'un restaurant comme versés",
   "Consulter les statistiques globales des bons cadeaux (vendus, utilisés, montants)",
+  "Télécharger le relevé comptable mensuel au format PDF",
 ]);
 
 calloutBox(
-  "Et pour un administrateur ?",
-  "Un Super administrateur ou un Admin n'a pas besoin d'un compte trésorier : il retrouve exactement les mêmes informations et les mêmes actions directement dans l'administration habituelle, via Association > Trésorerie (/admin/tresorerie)."
+  "À savoir",
+  "Un Super administrateur ou un Admin n'a pas besoin d'un compte trésorier séparé : il retrouve exactement les mêmes informations et les mêmes actions au même endroit (Association > Trésorerie), simplement avec accès au reste de l'administration en plus."
 );
 
 // ---------------------------------------------------------------------------
@@ -416,7 +417,7 @@ steps([
 
 calloutBox(
   "Important",
-  "Cette installation ne fonctionne que depuis /mon-restaurant (l'espace restaurateur). Elle n'est pas proposée depuis les autres espaces (/admin, /tresorerie)."
+  "Cette installation ne fonctionne que depuis /mon-restaurant (l'espace restaurateur). Elle n'est pas proposée depuis l'administration (/admin)."
 );
 
 subTitle("Utiliser l'application au quotidien");
@@ -444,7 +445,7 @@ doc.moveDown(1);
 tableTwoCols(
   [
     ["Secrétaire", "/admin/login — bons cadeaux + communication"],
-    ["Trésorier", "/tresorerie/login — versements aux restaurants"],
+    ["Trésorier", "/admin/login — versements aux restaurants"],
     ["Restaurateur", "/mon-restaurant/login — fiche + validation des bons"],
     ["Admin / Super admin", "/admin/login — accès complet à l'administration"],
   ],

@@ -66,15 +66,16 @@ export const authConfig: NextAuthConfig = {
       const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
       if (isAdminRoute) {
         const role = auth?.user?.role;
-        if (!auth?.user || (role !== "SUPER_ADMIN" && role !== "ADMIN" && role !== "SECRETAIRE")) {
+        if (!auth?.user || (role !== "SUPER_ADMIN" && role !== "ADMIN" && role !== "SECRETAIRE" && role !== "TRESORIER")) {
           return NextResponse.redirect(new URL("/admin/login", request.url));
         }
-        // SECRETAIRE n'a accès qu'aux bons cadeaux et au bloc "Communication"
-        // (voir GIFT_VOUCHER_ROLES/COMMUNICATION_ROLES dans
-        // lib/auth/permissions.ts, qui protègent les routes API
-        // correspondantes) — toute autre page /admin/* lui est fermée ici, en
-        // amont. `loginAction` redirige toujours vers /admin après connexion :
-        // pour ce rôle, on renvoie donc plutôt vers sa page d'accueil réelle.
+        // SECRETAIRE et TRESORIER n'ont chacun accès qu'à leur propre portion
+        // de /admin (voir GIFT_VOUCHER_ROLES/COMMUNICATION_ROLES/
+        // TREASURY_ROLES dans lib/auth/permissions.ts, qui protègent les
+        // routes API correspondantes) — toute autre page /admin/* leur est
+        // fermée ici, en amont. `loginAction` redirige toujours vers /admin
+        // après connexion : pour ces rôles, on renvoie donc plutôt vers leur
+        // page d'accueil réelle.
         if (role === "SECRETAIRE") {
           const allowed =
             pathname.startsWith("/admin/bon-cadeaux") ||
@@ -84,6 +85,11 @@ export const authConfig: NextAuthConfig = {
             return NextResponse.redirect(new URL("/admin/bon-cadeaux", request.url));
           }
         }
+        if (role === "TRESORIER") {
+          if (!pathname.startsWith("/admin/tresorerie")) {
+            return NextResponse.redirect(new URL("/admin/tresorerie", request.url));
+          }
+        }
         return true;
       }
 
@@ -91,28 +97,6 @@ export const authConfig: NextAuthConfig = {
       if (isRestaurateurRoute) {
         if (!auth?.user || auth.user.role !== "RESTAURATEUR" || !auth.user.restaurantId) {
           return NextResponse.redirect(new URL("/mon-restaurant/login", request.url));
-        }
-        return true;
-      }
-
-      const isTreasuryRoute = pathname.startsWith("/tresorerie") && pathname !== "/tresorerie/login";
-      if (isTreasuryRoute) {
-        // /tresorerie est le portail dédié, réservé au rôle TRESORIER (sa
-        // propre page de connexion ne redirige d'ailleurs que ce rôle-là, voir
-        // app/tresorerie/login/page.tsx). SUPER_ADMIN et ADMIN ont, eux, accès
-        // aux mêmes données depuis le panneau d'administration habituel via
-        // /admin/tresorerie — pas besoin d'un second chemin ici, et
-        // app/tresorerie/(dashboard)/layout.tsx applique de toute façon la
-        // même restriction stricte en aval.
-        // TODO(debug ponctuel) : trace temporaire le temps de diagnostiquer
-        // le blocage signalé — à retirer une fois résolu.
-        console.log("[debug-tresorerie] middleware", {
-          pathname,
-          hasUser: Boolean(auth?.user),
-          role: auth?.user?.role,
-        });
-        if (!auth?.user || auth.user.role !== "TRESORIER") {
-          return NextResponse.redirect(new URL("/tresorerie/login", request.url));
         }
         return true;
       }

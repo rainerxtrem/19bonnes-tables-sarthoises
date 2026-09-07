@@ -42,6 +42,7 @@ const DEFAULT_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN"];
 const SUPER_ADMIN_ONLY: Role[] = ["SUPER_ADMIN"];
 const GIFT_VOUCHER_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
 const COMMUNICATION_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "SECRETAIRE"];
+const TREASURY_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "TRESORIER"];
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -65,7 +66,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/bureau", label: "Bureau", icon: Users },
       { href: "/admin/partenaires", label: "Partenaires", icon: Handshake },
       { href: "/admin/bon-cadeaux", label: "Bons cadeaux", icon: Gift, roles: GIFT_VOUCHER_ROLES },
-      { href: "/admin/tresorerie", label: "Trésorerie", icon: Wallet },
+      { href: "/admin/tresorerie", label: "Trésorerie", icon: Wallet, roles: TREASURY_ROLES },
     ],
   },
   {
