@@ -60,6 +60,9 @@ export function SiteFooter({
             <Link href="/faq" className="w-fit hover:text-gold-300">
               FAQ
             </Link>
+            <Link href="/presse" className="w-fit hover:text-gold-300">
+              Espace presse
+            </Link>
             <Link href="/mentions-legales" className="w-fit hover:text-gold-300">
               Mentions légales
             </Link>
@@ -71,6 +74,9 @@ export function SiteFooter({
             </Link>
             <Link href="/mon-restaurant" className="w-fit hover:text-gold-300">
               Espace restaurateur
+            </Link>
+            <Link href="/admin" className="w-fit hover:text-gold-300">
+              Espace administration
             </Link>
           </nav>
         </div>

@@ -56,6 +56,15 @@ export async function createVoucherCheckout(input: GiftVoucherPurchaseInput) {
     mode: "payment",
     payment_method_types: ["card"],
     customer_email: input.buyerEmail,
+    // Affiche un champ "Code promo" sur la page de paiement Stripe. Les
+    // codes eux-mêmes se créent et se gèrent côté Stripe (Dashboard >
+    // Produits > Coupons, puis Codes promotionnels), pas dans ce site :
+    // Stripe couvre déjà nativement dates de validité, limite d'usage,
+    // pourcentage ou montant fixe, etc. — inutile de dupliquer ça ici.
+    // Le montant du bon (amountCents ci-dessous) reste la valeur faciale
+    // choisie par l'acheteur ; un code promo réduit uniquement ce qu'il
+    // paie, jamais la valeur du bon lui-même.
+    allow_promotion_codes: true,
     line_items: [
       {
         quantity: 1,

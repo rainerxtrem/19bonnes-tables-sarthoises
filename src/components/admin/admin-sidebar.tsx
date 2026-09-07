@@ -23,6 +23,7 @@ import {
   X,
   HelpCircle,
   CalendarDays,
+  Camera,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -58,6 +59,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/faq", label: "FAQ", icon: HelpCircle },
       { href: "/admin/categories", label: "Catégories", icon: Tags },
       { href: "/admin/galerie", label: "Galerie", icon: ImageIcon },
+      { href: "/admin/presse", label: "Espace presse", icon: Camera },
     ],
   },
   {

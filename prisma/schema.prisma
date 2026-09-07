@@ -115,6 +115,7 @@ model Media {
   partnerLogoFor     Partner[]
   galleryItems       GalleryItem[]
   eventMainFor       Event[]           @relation("EventMainImage")
+  pressAssetFor      PressAsset[]
   settingsLogoFor    SiteSetting[]     @relation("SettingsLogo")
   settingsFaviconFor SiteSetting[]     @relation("SettingsFavicon")
   settingsOgFor      SiteSetting[]     @relation("SettingsOgImage")
@@ -383,6 +384,28 @@ model Partner {
 
   @@index([isActive, order])
   @@map("partners")
+}
+
+// ---------------------------------------------------------------------------
+// Espace presse
+// ---------------------------------------------------------------------------
+
+model PressAsset {
+  id          String   @id @default(cuid())
+  label       String
+  description String?
+  // Contrairement à Partner.logoId (optionnel), un élément de kit presse
+  // sans fichier n'a pas de sens — toujours requis, et supprimé avec le
+  // média sous-jacent (comme GalleryItem) plutôt que laissé orphelin.
+  mediaId     String
+  media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@map("press_assets")
 }
 
 // ---------------------------------------------------------------------------
