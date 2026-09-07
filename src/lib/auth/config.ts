@@ -104,6 +104,13 @@ export const authConfig: NextAuthConfig = {
         // /admin/tresorerie — pas besoin d'un second chemin ici, et
         // app/tresorerie/(dashboard)/layout.tsx applique de toute façon la
         // même restriction stricte en aval.
+        // TODO(debug ponctuel) : trace temporaire le temps de diagnostiquer
+        // le blocage signalé — à retirer une fois résolu.
+        console.log("[debug-tresorerie] middleware", {
+          pathname,
+          hasUser: Boolean(auth?.user),
+          role: auth?.user?.role,
+        });
         if (!auth?.user || auth.user.role !== "TRESORIER") {
           return NextResponse.redirect(new URL("/tresorerie/login", request.url));
         }

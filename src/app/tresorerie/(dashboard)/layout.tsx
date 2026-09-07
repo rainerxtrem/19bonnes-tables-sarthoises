@@ -3,6 +3,9 @@ import { auth, signOut } from "@/lib/auth";
 
 export default async function TresorerieLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  // TODO(debug ponctuel) : trace temporaire le temps de diagnostiquer le
+  // blocage signalé — à retirer une fois résolu.
+  console.log("[debug-tresorerie] layout", { hasUser: Boolean(session?.user), role: session?.user?.role });
   if (!session?.user || session.user.role !== "TRESORIER") {
     redirect("/tresorerie/login");
   }

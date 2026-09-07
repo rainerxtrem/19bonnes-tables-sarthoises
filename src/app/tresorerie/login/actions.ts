@@ -23,12 +23,14 @@ export async function tresorierLoginAction(_prevState: LoginState, formData: For
     return {};
   } catch (error) {
     if (error instanceof AuthError) {
+      console.log("[debug-tresorerie] signIn AuthError", error.type);
       if (error.type === "CredentialsSignin") {
         return { error: "Email ou mot de passe incorrect." };
       }
       return { error: "Une erreur est survenue lors de la connexion." };
     }
     // NEXT_REDIRECT est levée volontairement par signIn en cas de succès.
+    console.log("[debug-tresorerie] signIn non-AuthError (probablement NEXT_REDIRECT)", (error as Error)?.message);
     throw error;
   }
 }
