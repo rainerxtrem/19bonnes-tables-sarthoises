@@ -43,13 +43,33 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
     setOpen(false);
   }
 
+  /** Facebook et X ouvrent leur propre app (accueil, pas l'écran de
+   * publication) si le lien de partage est suivi comme une navigation
+   * normale — leur app intercepte leur propre domaine dès qu'il détecte un
+   * clic classique. Une fenêtre popup pilotée en JS (comme le recommandent
+   * les deux plateformes pour leurs boutons de partage officiels) contourne
+   * cette interception et ouvre bien l'écran "Publier" avec le lien
+   * pré-rempli. */
+  function openSharePopup(shareUrl: string) {
+    window.open(shareUrl, "share-popup", "noopener,noreferrer,width=580,height=470");
+    setOpen(false);
+  }
+
   const encodedUrl = encodeURIComponent(url);
   const encodedText = encodeURIComponent(title);
 
   const links: { label: string; icon: LucideIcon; href?: string; onClick?: () => void }[] = [
     { label: "Instagram", icon: Instagram, onClick: shareToInstagram },
-    { label: "Facebook", icon: Facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
-    { label: "X", icon: XIcon, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}` },
+    {
+      label: "Facebook",
+      icon: Facebook,
+      onClick: () => openSharePopup(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`),
+    },
+    {
+      label: "X",
+      icon: XIcon,
+      onClick: () => openSharePopup(`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`),
+    },
     { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${encodedText}%20${encodedUrl}` },
     { label: "Message", icon: MessageSquare, href: `sms:?&body=${encodedText}%20${encodedUrl}` },
   ];
