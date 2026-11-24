@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import type { SiteTheme } from "@prisma/client";
 import { cn } from "@/lib/utils/cn";
+import { SeasonalGarland } from "@/components/public/seasonal-garland";
 
 interface NavItem {
   id: string;
@@ -18,10 +20,12 @@ export function SiteHeader({
   siteName,
   items,
   logoUrl,
+  theme = "NORMAL",
 }: {
   siteName: string;
   items: NavItem[];
   logoUrl?: string | null;
+  theme?: SiteTheme;
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -58,6 +62,9 @@ export function SiteHeader({
     <header
       className={cn("sticky top-0 z-40 transition-shadow duration-300", scrolled && "shadow-[0_1px_0_0_rgba(23,19,15,0.06)]")}
     >
+      {/* Avant la barre et le panneau mobile dans le DOM : ce dernier
+          (plein écran) passe donc par-dessus la guirlande. */}
+      <SeasonalGarland theme={theme} />
       <div className="border-b border-ink-900/10 bg-cream-50/95 backdrop-blur">
         <div className="container flex h-20 items-center justify-between">
           <Link href="/" className="group flex items-center gap-3">

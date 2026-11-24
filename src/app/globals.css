@@ -152,8 +152,172 @@
     opacity: 0;
   }
 }
+/* Feux d'artifice (Nouvel an) : 12 étincelles qui jaillissent en cercle. */
+.seasonal-firework {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.seasonal-firework-spark {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px 1px currentColor;
+  opacity: 0;
+  animation: seasonal-firework 5.2s ease-out infinite;
+  animation-delay: inherit;
+}
+@keyframes seasonal-firework {
+  0% {
+    transform: rotate(var(--a)) translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    transform: rotate(var(--a)) translateY(calc(var(--fw-size, 70px) * -1)) scale(1);
+    opacity: 0.9;
+  }
+  32%,
+  100% {
+    transform: rotate(var(--a)) translateY(calc(var(--fw-size, 70px) * -1.15)) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* Gerbe de symboles au clic */
+.seasonal-burst {
+  position: fixed;
+  width: 0;
+  height: 0;
+}
+.seasonal-burst-piece {
+  position: absolute;
+  left: -0.5em;
+  top: -0.5em;
+  font-size: 14px;
+  line-height: 1;
+  animation: seasonal-burst 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes seasonal-burst {
+  from {
+    transform: rotate(var(--a)) translateY(0) scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--a)) translateY(-46px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* Guirlande sous le header (voir components/public/seasonal-garland.tsx) */
+.garland-blink,
+.garland-twinkle,
+.garland-pulse,
+.garland-sway {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-delay: var(--garland-delay, 0s);
+}
+.garland-blink {
+  animation: garland-blink 2.4s ease-in-out infinite;
+  animation-delay: var(--garland-delay, 0s);
+}
+.garland-twinkle {
+  animation: garland-twinkle 2.8s ease-in-out infinite;
+  animation-delay: var(--garland-delay, 0s);
+}
+.garland-pulse {
+  animation: garland-pulse 1.8s ease-in-out infinite;
+  animation-delay: var(--garland-delay, 0s);
+}
+.garland-sway {
+  transform-origin: top center;
+  animation: garland-sway 3.2s ease-in-out infinite;
+  animation-delay: var(--garland-delay, 0s);
+}
+@keyframes garland-blink {
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    opacity: 0.35;
+    filter: none;
+  }
+}
+@keyframes garland-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75) rotate(20deg);
+  }
+}
+@keyframes garland-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.18);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.12);
+  }
+}
+@keyframes garland-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+/* Petits titres "eyebrow" : le tiret doré devient un symbole du thème. */
+[data-theme] .eyebrow::before {
+  height: auto;
+  width: auto;
+  background: none;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+}
+[data-theme="noel"] .eyebrow::before {
+  content: "\2744\FE0E";
+}
+[data-theme="nouvel-an"] .eyebrow::before {
+  content: "\2726\FE0E";
+}
+[data-theme="paques"] .eyebrow::before {
+  content: "\273F\FE0E";
+}
+[data-theme="saint-valentin"] .eyebrow::before {
+  content: "\2665\FE0E";
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .seasonal-particle {
+  .seasonal-particle,
+  .seasonal-firework,
+  .seasonal-burst {
     display: none;
+  }
+  .garland-blink,
+  .garland-twinkle,
+  .garland-pulse,
+  .garland-sway {
+    animation: none;
   }
 }

@@ -6,6 +6,7 @@ import { CookieConsentBanner } from "@/components/public/cookie-consent-banner";
 import { AnalyticsLoader } from "@/components/public/analytics-loader";
 import { SeasonalBanner } from "@/components/public/seasonal-banner";
 import { SeasonalEffects } from "@/components/public/seasonal-effects";
+import { SeasonalFooterDecor } from "@/components/public/seasonal-footer-decor";
 import { absoluteUrl } from "@/lib/seo";
 import { resolveActiveTheme, themeAttribute } from "@/lib/themes";
 
@@ -50,8 +51,14 @@ export default async function PublicLayout({ children }: { children: React.React
       {isSeasonal && settings.themeBannerText ? (
         <SeasonalBanner theme={activeTheme} text={settings.themeBannerText} />
       ) : null}
-      <SiteHeader siteName={settings.siteName} items={navItems} logoUrl={settings.logo?.url ?? null} />
+      <SiteHeader
+        siteName={settings.siteName}
+        items={navItems}
+        logoUrl={settings.logo?.url ?? null}
+        theme={activeTheme}
+      />
       <main className="flex-1">{children}</main>
+      <SeasonalFooterDecor theme={activeTheme} />
       <SiteFooter
         siteName={settings.siteName}
         contactEmail={settings.contactEmail}
