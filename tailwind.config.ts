@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import { THEME_PALETTES, cssVarScale, paletteToCssVars, themeAttribute, type ThemeKey } from "./src/lib/themes/palettes";
 
 const config: Config = {
   content: [
@@ -9,61 +11,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Alias historiques conservés (utilisés partout, y compris dans
-        // /admin) pour ne rien casser : ils pointent simplement vers la
-        // nouvelle palette éditoriale ci-dessous.
+        // Les couleurs pointent vers des variables CSS (voir
+        // src/lib/themes/palettes.ts) pour permettre les thèmes saisonniers
+        // du site public sans toucher aux classes utilisées partout.
+        // Alias historiques conservés (utilisés aussi dans /admin).
         brand: {
-          dark: "#211a15",
-          DEFAULT: "#7d2b2f",
-          light: "#cda047",
-          cream: "#faf6ee",
+          dark: "rgb(var(--c-ink-900) / <alpha-value>)",
+          DEFAULT: "rgb(var(--c-wine-600) / <alpha-value>)",
+          light: "rgb(var(--c-gold-400) / <alpha-value>)",
+          cream: "rgb(var(--c-cream-100) / <alpha-value>)",
         },
-        // Palette éditoriale "guide gastronomique" : encre chaude, laiton/or
-        // et vin, sur fond crème — voir la refonte design.
-        ink: {
-          50: "#f6f5f3",
-          100: "#e9e6e1",
-          200: "#d3cdc3",
-          300: "#b3a99a",
-          400: "#8f8271",
-          500: "#6f6455",
-          600: "#564d41",
-          700: "#443c33",
-          800: "#332c26",
-          900: "#231e1a",
-          950: "#17130f",
-        },
-        gold: {
-          50: "#fbf7ec",
-          100: "#f5ecd0",
-          200: "#ead79f",
-          300: "#dcbb6c",
-          400: "#cda047",
-          500: "#b8863a",
-          600: "#996b2d",
-          700: "#7a5326",
-          800: "#644423",
-          900: "#54391f",
-        },
-        wine: {
-          50: "#fbf1f1",
-          100: "#f4dcdd",
-          200: "#e8b9bb",
-          300: "#d68a8d",
-          400: "#bd5c60",
-          500: "#9c3a3e",
-          600: "#7d2b2f",
-          700: "#642227",
-          800: "#521e22",
-          900: "#461c1f",
-        },
-        cream: {
-          DEFAULT: "#faf6ee",
-          50: "#fffdf9",
-          100: "#faf6ee",
-          200: "#f3ecdb",
-          300: "#e9ddc1",
-        },
+        ink: cssVarScale("ink"),
+        gold: cssVarScale("gold"),
+        wine: cssVarScale("wine"),
+        cream: { DEFAULT: "rgb(var(--c-cream-100) / <alpha-value>)", ...cssVarScale("cream") },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -91,7 +52,18 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [
+    require("@tailwindcss/typography"),
+    // :root = thème Normal (admin + site public par défaut) ; chaque thème
+    // saisonnier redéfinit les variables sous [data-theme="..."].
+    plugin(({ addBase }) => {
+      const { NORMAL, ...seasonal } = THEME_PALETTES;
+      addBase({ ":root": paletteToCssVars(NORMAL) });
+      for (const [key, palette] of Object.entries(seasonal)) {
+        addBase({ [`[data-theme="${themeAttribute(key as ThemeKey)}"]`]: paletteToCssVars(palette) });
+      }
+    }),
+  ],
 };
 
 export default config;

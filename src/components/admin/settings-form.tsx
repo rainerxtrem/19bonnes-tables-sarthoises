@@ -9,6 +9,9 @@ import { siteSettingSchema, type SiteSettingInput } from "@/lib/validation/setti
 import { Button } from "@/components/ui/button";
 import { FormField, Input, Textarea } from "@/components/ui/field";
 import { MediaPicker, type PickedMedia } from "@/components/admin/media-picker";
+import { Switch } from "@/components/ui/switch";
+import { THEME_OPTIONS } from "@/lib/themes";
+import { cn } from "@/lib/utils/cn";
 import type { Media, SiteSetting } from "@prisma/client";
 
 type SettingsWithMedia = SiteSetting & { logo: Media | null; favicon: Media | null };
@@ -26,6 +29,7 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SiteSettingInput>({
     resolver: zodResolver(siteSettingSchema),
@@ -44,8 +48,17 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
       seoDefaultDescription: settings.seoDefaultDescription ?? "",
       footerText: settings.footerText ?? "",
       gtmId: settings.gtmId ?? "",
+      themeEnabled: settings.themeEnabled,
+      siteTheme: settings.siteTheme,
+      themeEffects: settings.themeEffects,
+      themeBannerText: settings.themeBannerText ?? "",
     },
   });
+
+  const themeEnabled = watch("themeEnabled") ?? false;
+  const siteTheme = watch("siteTheme") ?? "NORMAL";
+  const themeEffects = watch("themeEffects") ?? true;
+  const bannerExample = THEME_OPTIONS.find((option) => option.key === siteTheme)?.bannerExample;
 
   async function onSubmit(values: SiteSettingInput) {
     setServerError(null);
@@ -67,6 +80,76 @@ export function SettingsForm({ settings }: { settings: SettingsWithMedia }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
+        <section className="space-y-5 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
+          <h2 className="font-display text-base text-ink-900">Thème du site</h2>
+          <Switch
+            id="themeEnabled"
+            checked={themeEnabled}
+            onChange={(value) => setValue("themeEnabled", value, { shouldDirty: true })}
+            label="Activer le thème saisonnier"
+            description="Désactivé, le site public s'affiche avec son thème Normal. L'administration n'est jamais modifiée."
+          />
+
+          {/* `inert` plutôt que <fieldset disabled> : les champs restent dans
+              les valeurs du formulaire quand le thème est désactivé. */}
+          <div inert={!themeEnabled} className={cn("space-y-5", !themeEnabled && "opacity-50")}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {THEME_OPTIONS.map((option) => {
+                const selected = option.key === siteTheme;
+                return (
+                  <label
+                    key={option.key}
+                    className={cn(
+                      "flex cursor-pointer flex-col gap-2 rounded-md border p-3 transition-colors",
+                      selected ? "border-brand ring-1 ring-brand" : "border-ink-100 hover:border-ink-300"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={option.key}
+                      className="sr-only"
+                      {...register("siteTheme")}
+                    />
+                    <span className="flex gap-1">
+                      {option.swatches.map((color) => (
+                        <span
+                          key={color}
+                          className="h-5 w-5 rounded-full border border-black/10"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </span>
+                    <span className="text-sm font-medium text-ink-900">{option.label}</span>
+                    <span className="text-xs text-ink-500">{option.description}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <Switch
+              id="themeEffects"
+              checked={themeEffects}
+              onChange={(value) => setValue("themeEffects", value, { shouldDirty: true })}
+              disabled={!themeEnabled || siteTheme === "NORMAL"}
+              label="Animations décoratives"
+              description="Neige, confettis, pétales ou cœurs selon le thème (masquées pour les visiteurs qui limitent les animations)."
+            />
+
+            <FormField
+              label="Message du bandeau (optionnel)"
+              htmlFor="themeBannerText"
+              error={errors.themeBannerText?.message}
+              hint="Affiché en haut de toutes les pages tant qu'un thème saisonnier est actif. Laisser vide pour ne pas afficher de bandeau."
+            >
+              <Input
+                id="themeBannerText"
+                placeholder={bannerExample || "Ex. Joyeuses fêtes !"}
+                {...register("themeBannerText")}
+              />
+            </FormField>
+          </div>
+        </section>
+
         <section className="space-y-4 rounded-lg border border-ink-100 bg-white p-5 shadow-sm">
           <h2 className="font-display text-base text-ink-900">Identité du site</h2>
           <FormField label="Nom du site" htmlFor="siteName" error={errors.siteName?.message}>

@@ -21,6 +21,10 @@ export const siteSettingSchema = z.object({
   ogDefaultImageId: z.string().cuid().optional().nullable(),
   footerText: z.string().trim().max(2000).optional().or(z.literal("")),
   gtmId: z.string().trim().max(40).optional().or(z.literal("")),
+  themeEnabled: z.boolean().optional(),
+  siteTheme: z.enum(["NORMAL", "NOEL", "NOUVEL_AN", "PAQUES", "SAINT_VALENTIN"]).optional(),
+  themeEffects: z.boolean().optional(),
+  themeBannerText: z.string().trim().max(160).optional().or(z.literal("")),
 });
 
 export type SiteSettingInput = z.infer<typeof siteSettingSchema>;

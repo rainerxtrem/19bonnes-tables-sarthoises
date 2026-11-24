@@ -25,8 +25,9 @@ export async function PATCH(request: NextRequest) {
         seoDefaultDescription: input.seoDefaultDescription || null,
         footerText: input.footerText || null,
         gtmId: input.gtmId || null,
+        themeBannerText: input.themeBannerText || null,
       },
-      create: { id: "singleton", ...input },
+      create: { id: "singleton", ...input, themeBannerText: input.themeBannerText || null },
     });
 
     await recordAuditLog({ userId: session.user.id, action: "settings.update", entityType: "SiteSetting" });

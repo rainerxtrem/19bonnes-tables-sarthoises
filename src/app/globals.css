@@ -92,3 +92,68 @@
     transform: translateY(0);
   }
 }
+
+/* Décor des thèmes saisonniers (voir components/public/seasonal-effects.tsx).
+   Totalement masqué pour les utilisateurs qui préfèrent moins de mouvement. */
+.seasonal-particle {
+  position: absolute;
+  top: -40px;
+  line-height: 1;
+  will-change: transform;
+  animation-name: seasonal-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.seasonal-confetti {
+  border-radius: 1px;
+  animation-name: seasonal-fall-spin;
+}
+.seasonal-petal {
+  border-radius: 60% 0 60% 0;
+  animation-name: seasonal-fall-spin;
+}
+.seasonal-heart {
+  top: auto;
+  bottom: -40px;
+  animation-name: seasonal-rise;
+}
+
+@keyframes seasonal-fall {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--drift, 0px), 55vh, 0);
+  }
+  to {
+    transform: translate3d(0, 110vh, 0);
+  }
+}
+@keyframes seasonal-fall-spin {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(var(--drift, 0px), 55vh, 0) rotate(240deg);
+  }
+  to {
+    transform: translate3d(0, 110vh, 0) rotate(480deg);
+  }
+}
+@keyframes seasonal-rise {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.8);
+  }
+  50% {
+    transform: translate3d(var(--drift, 0px), -55vh, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, -110vh, 0) scale(0.9);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seasonal-particle {
+    display: none;
+  }
+}

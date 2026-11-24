@@ -4,7 +4,10 @@ import { SiteHeader } from "@/components/public/site-header";
 import { SiteFooter } from "@/components/public/site-footer";
 import { CookieConsentBanner } from "@/components/public/cookie-consent-banner";
 import { AnalyticsLoader } from "@/components/public/analytics-loader";
+import { SeasonalBanner } from "@/components/public/seasonal-banner";
+import { SeasonalEffects } from "@/components/public/seasonal-effects";
 import { absoluteUrl } from "@/lib/seo";
+import { resolveActiveTheme, themeAttribute } from "@/lib/themes";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +32,24 @@ export default async function PublicLayout({ children }: { children: React.React
     sameAs: sameAs.length > 0 ? sameAs : undefined,
   };
 
+  // Thème saisonnier : posé uniquement ici (jamais sur /admin), il redéfinit
+  // les variables de couleur — voir src/lib/themes/palettes.ts. Le fond est
+  // répété sur ce wrapper car <body> reste hors de sa portée.
+  const activeTheme = resolveActiveTheme(settings);
+  const isSeasonal = activeTheme !== "NORMAL";
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div
+      data-theme={isSeasonal ? themeAttribute(activeTheme) : undefined}
+      className="flex min-h-screen flex-col bg-cream-100 text-ink-800"
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
+      {isSeasonal && settings.themeBannerText ? (
+        <SeasonalBanner theme={activeTheme} text={settings.themeBannerText} />
+      ) : null}
       <SiteHeader siteName={settings.siteName} items={navItems} logoUrl={settings.logo?.url ?? null} />
       <main className="flex-1">{children}</main>
       <SiteFooter
@@ -42,6 +57,7 @@ export default async function PublicLayout({ children }: { children: React.React
         contactEmail={settings.contactEmail}
         footerText={settings.footerText}
       />
+      {isSeasonal && settings.themeEffects ? <SeasonalEffects theme={activeTheme} /> : null}
       <CookieConsentBanner />
       <AnalyticsLoader />
     </div>

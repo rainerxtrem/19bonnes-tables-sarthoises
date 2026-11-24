@@ -607,9 +607,23 @@ model SiteSetting {
   ogDefaultImage        Media?   @relation("SettingsOgImage", fields: [ogDefaultImageId], references: [id], onDelete: SetNull)
   footerText            String?  @db.Text
   gtmId                 String?
+  // Thème saisonnier du site public (l'admin n'est jamais thémé). Désactivé
+  // = thème Normal affiché, quel que soit `siteTheme`.
+  themeEnabled          Boolean   @default(false)
+  siteTheme             SiteTheme @default(NORMAL)
+  themeEffects          Boolean   @default(true)
+  themeBannerText       String?
   updatedAt             DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+enum SiteTheme {
+  NORMAL
+  NOEL
+  NOUVEL_AN
+  PAQUES
+  SAINT_VALENTIN
 }
 
 // ---------------------------------------------------------------------------
